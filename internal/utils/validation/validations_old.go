@@ -1,7 +1,9 @@
-package app
+package validation
 
 import (
 	"context"
+	"donbarrigon/new/internal/utils/err"
+	"donbarrigon/new/internal/utils/handler"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
@@ -17,7 +19,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func Validate(ctx *HttpContext, req any) Error {
+func Validate(c *handler.HttpContext, req any) err.Error {
 	rulesMap := make(map[string][]string)
 
 	t := reflect.TypeOf(req)
@@ -42,11 +44,11 @@ func Validate(ctx *HttpContext, req any) Error {
 		}
 	}
 
-	return ValidateRules(ctx, req, rulesMap)
+	return ValidateRules(c, req, rulesMap)
 }
 
-func ValidateRules(ctx *HttpContext, req any, rules map[string][]string) Error {
-	err := Errors.NewEmpty()
+func ValidateRules(c *handler.HttpContext, req any, rules map[string][]string) err.Error {
+	e := err.NewValidationError()
 
 	val := reflect.ValueOf(req)
 	if val.Kind() == reflect.Ptr {
@@ -54,7 +56,7 @@ func ValidateRules(ctx *HttpContext, req any, rules map[string][]string) Error {
 	}
 
 	if val.Kind() != reflect.Struct {
-		return Errors.Unknownf("The request is not a valid struct.")
+		return err.Internal("La request no es un *struct")
 	}
 
 	typ := val.Type()

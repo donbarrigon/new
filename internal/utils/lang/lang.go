@@ -10,6 +10,10 @@ func T(lang string, text string, ph fm.Placeholder) string {
 		txt = text
 	}
 
+	if ph == nil {
+		return txt
+	}
+
 	for key, value := range ph {
 		v := AtributesMap[lang][value]
 		if v != "" {

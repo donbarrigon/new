@@ -1,7 +1,8 @@
-package app
+package handler
 
 import (
 	"bytes"
+	"donbarrigon/new/internal/utils/err"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -16,12 +17,12 @@ import (
 type AuthInterface interface {
 	GetID() bson.ObjectID
 	GetUserID() bson.ObjectID
-	Can(permissionName ...string) Error
-	HasRole(roleName ...string) Error
+	Can(permissionName ...string) err.Error
+	HasRole(roleName ...string) err.Error
 }
 
 type Validator interface {
-	PrepareForValidation(ctx *HttpContext) Error
+	PrepareForValidation(c *HttpContext) err.Error
 }
 
 type MessageResource struct {
@@ -43,35 +44,34 @@ func NewHttpContext(w http.ResponseWriter, r *http.Request) *HttpContext {
 	}
 }
 
-func (ctx *HttpContext) Lang() string {
-	return ctx.Request.Header.Get("Accept-Language")
+func (c *HttpContext) Lang() string {
+	return c.Request.Header.Get("Accept-Language")
 }
 
-func (ctx *HttpContext) GetBody(request any) Error {
-	decoder := json.NewDecoder(ctx.Request.Body)
-	if err := decoder.Decode(request); err != nil {
-		return &Err{
-			Status:    http.StatusBadRequest,
-			Message:   "The request body is invalid",
-			Err:       "Could not decode the request body: {error}",
-			phMessage: List{{"error", err.Error()}},
-		}
+func (c *HttpContext) GetBody(request any) err.Error {
+	decoder := json.NewDecoder(c.Request.Body)
+	if e := decoder.Decode(request); e != nil {
+		return err.New(
+			http.StatusBadRequest,
+			"El cuerpo de la solicitud no es válido",
+			e.Error(),
+		)
 	}
-	defer ctx.Request.Body.Close()
+	defer c.Request.Body.Close()
 	return nil
 }
 
-func (ctx *HttpContext) ValidateBody(req Validator) Error {
+func (c *HttpContext) ValidateBody(req Validator) err.Error {
 
-	if err := ctx.GetBody(req); err != nil {
-		return err
+	if e := c.GetBody(req); e != nil {
+		return e
 	}
 
-	errPFV := req.PrepareForValidation(ctx)
+	errPFV := req.PrepareForValidation(c)
 	if errPFV != nil {
 		errPFV = errPFV.Errors()
 	}
-	if err := Validate(ctx, req); err != nil {
+	if err := Validate(c, req); err != nil {
 		if errPFV != nil {
 			errMap, phMap := errPFV.GetMap()
 			for key, valor := range errMap {
@@ -89,60 +89,60 @@ func (ctx *HttpContext) ValidateBody(req Validator) Error {
 	return errPFV
 }
 
-func (ctx *HttpContext) GetParam(param string, defaultValue string) string {
-	if value := ctx.Params[param]; value != "" {
+func (c *HttpContext) GetParam(param string, defaultValue string) string {
+	if value := c.Params[param]; value != "" {
 		return value
 	}
 	return defaultValue
 }
 
-func (ctx *HttpContext) GetInput(param string) string {
-	return ctx.Request.URL.Query().Get(param)
+func (c *HttpContext) GetInput(param string) string {
+	return c.Request.URL.Query().Get(param)
 }
 
-func (ctx *HttpContext) ResponseJSON(status int, data any) {
-	ctx.Writer.Header().Set("Content-Type", "application/json")
-	ctx.Writer.WriteHeader(status)
+func (c *HttpContext) ResponseJSON(status int, data any) {
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.WriteHeader(status)
 
-	if err := json.NewEncoder(ctx.Writer).Encode(data); err != nil {
-		ctx.Writer.WriteHeader(http.StatusInternalServerError)
-		ctx.Writer.WriteHeader(500)
-		ctx.Writer.Write([]byte(Translate(ctx.Lang(), `{"message": "Error", "error": "Could not encode the response"}`)))
+	if err := json.NewEncoder(c.Writer).Encode(data); err != nil {
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.WriteHeader(500)
+		c.Writer.Write([]byte(Translate(c.Lang(), `{"message": "Error", "error": "Could not encode the response"}`)))
 	}
 }
 
-func (ctx *HttpContext) ResponseError(err Error) {
-	err.Translate(ctx.Lang())
-	ctx.ResponseJSON(err.GetStatus(), err)
+func (c *HttpContext) ResponseError(err Error) {
+	err.Translate(c.Lang())
+	c.ResponseJSON(err.GetStatus(), err)
 }
 
-func (ctx *HttpContext) ResponseNotFound() {
-	ctx.ResponseError(Errors.NotFoundf("The resource [{method}:{path}] does not exist",
-		Entry{"method", ctx.Request.Method},
-		Entry{"path", ctx.Request.URL.Path},
+func (c *HttpContext) ResponseNotFound() {
+	c.ResponseError(Errors.NotFoundf("The resource [{method}:{path}] does not exist",
+		Entry{"method", c.Request.Method},
+		Entry{"path", c.Request.URL.Path},
 	))
 }
 
-func (ctx *HttpContext) ResponseMessage(code int, data any, message string, ph ...Entry) {
-	ctx.ResponseJSON(code, &MessageResource{
-		Message: Translate(ctx.Lang(), message, ph...),
+func (c *HttpContext) ResponseMessage(code int, data any, message string, ph ...Entry) {
+	c.ResponseJSON(code, &MessageResource{
+		Message: Translate(c.Lang(), message, ph...),
 		Data:    data,
 	})
 }
 
-func (ctx *HttpContext) ResponseOk(data any) {
-	ctx.ResponseJSON(http.StatusOK, data)
+func (c *HttpContext) ResponseOk(data any) {
+	c.ResponseJSON(http.StatusOK, data)
 }
 
-func (ctx *HttpContext) ResponseCreated(data any) {
-	ctx.ResponseJSON(http.StatusCreated, data)
+func (c *HttpContext) ResponseCreated(data any) {
+	c.ResponseJSON(http.StatusCreated, data)
 }
 
-func (ctx *HttpContext) ResponseNoContent() {
-	ctx.Writer.WriteHeader(http.StatusNoContent)
+func (c *HttpContext) ResponseNoContent() {
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
-func (ctx *HttpContext) ResponseCSV(fileName string, data any, comma ...rune) {
+func (c *HttpContext) ResponseCSV(fileName string, data any, comma ...rune) {
 	val := reflect.ValueOf(data)
 
 	if val.Kind() != reflect.Slice {
@@ -151,7 +151,7 @@ func (ctx *HttpContext) ResponseCSV(fileName string, data any, comma ...rune) {
 			Message: "Error writing CSV",
 			Err:     "Data is not a slice of structs",
 		}
-		ctx.ResponseError(err)
+		c.ResponseError(err)
 		return
 	}
 
@@ -166,7 +166,7 @@ func (ctx *HttpContext) ResponseCSV(fileName string, data any, comma ...rune) {
 
 	if val.Len() == 0 {
 		err := Errors.NoDocumentsf("No data available")
-		ctx.ResponseError(err)
+		c.ResponseError(err)
 		return
 	}
 
@@ -234,7 +234,7 @@ func (ctx *HttpContext) ResponseCSV(fileName string, data any, comma ...rune) {
 	}
 	writer.Flush()
 
-	ctx.Writer.Header().Set("Content-Type", "text/csv")
-	ctx.Writer.Header().Set("Content-Disposition", "attachment;filename="+fileName+".csv")
-	ctx.Writer.Write(buffer.Bytes())
+	c.Writer.Header().Set("Content-Type", "text/csv")
+	c.Writer.Header().Set("Content-Disposition", "attachment;filename="+fileName+".csv")
+	c.Writer.Write(buffer.Bytes())
 }

@@ -1,12 +1,13 @@
-package app
+package handler
 
 import (
+	"donbarrigon/new/internal/utils/handler"
 	"net/http"
 	"strings"
 )
 
-type ControllerFun func(ctx *HttpContext)
-type MiddlewareFun func(func(ctx *HttpContext)) func(ctx *HttpContext)
+type ControllerFun func(ctx *handler.HttpContext)
+type MiddlewareFun func(func(ctx *handler.HttpContext)) func(ctx *handler.HttpContext)
 
 type Router struct {
 	path        string
@@ -218,7 +219,7 @@ func (r *Router) Find(path []string, rd *RouterData) {
 func (router *Router) HandlerFunction() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := NewHttpContext(w, r)
+		ctx := handler.NewHttpContext(w, r)
 
 		rd := &RouterData{
 			Params: map[string]string{},
