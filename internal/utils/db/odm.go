@@ -1,7 +1,8 @@
-package app
+package db
 
 import (
 	"context"
+	"donbarrigon/new/internal/utils/err"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -13,11 +14,11 @@ type Model interface {
 	CollectionName() string
 	GetID() bson.ObjectID
 	SetID(id bson.ObjectID)
-	BeforeCreate() Error
-	BeforeUpdate() Error
+	BeforeCreate() err.Error
+	BeforeUpdate() err.Error
 
-	Create() Error
-	Delete() Error
+	Create() err.Error // esto lo agrega el odm
+	Delete() err.Error // esto lo agrega el odm
 }
 
 type Collection []Model
@@ -29,133 +30,133 @@ type Odm struct {
 var DBClient *mongo.Client
 var DB *mongo.Database
 
-func (o *Odm) FindByHexID(id string) Error {
+func (o *Odm) FindByHexID(id string) err.Error {
 
-	objectId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return Errors.HexID(err)
+	objectId, e := bson.ObjectIDFromHex(id)
+	if e != nil {
+		return err.HexID(e.Error())
 	}
 	filter := bson.D{bson.E{Key: "_id", Value: objectId}}
-	if err := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); err != nil {
-		return Errors.Mongo(err)
+	if e := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); e != nil {
+		return err.Mongo(e)
 	}
 	return nil
 }
 
-func (o *Odm) FindByID(id bson.ObjectID) Error {
+func (o *Odm) FindByID(id bson.ObjectID) err.Error {
 	filter := bson.D{bson.E{Key: "_id", Value: id}}
-	if err := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); err != nil {
-		return Errors.Mongo(err)
+	if e := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); e != nil {
+		return err.Mongo(e)
 	}
 	return nil
 }
 
-func (o *Odm) First(field string, value any) Error {
+func (o *Odm) First(field string, value any) err.Error {
 	filter := bson.D{bson.E{Key: field, Value: value}}
-	if err := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); err != nil {
-		return Errors.Mongo(err)
+	if e := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); e != nil {
+		return err.Mongo(e)
 	}
 	return nil
 }
 
-func (o *Odm) FindOne(filter bson.D, opts ...options.Lister[options.FindOneOptions]) Error {
-	if err := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter, opts...).Decode(o.Model); err != nil {
-		return Errors.Mongo(err)
+func (o *Odm) FindOne(filter bson.D, opts ...options.Lister[options.FindOneOptions]) err.Error {
+	if e := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter, opts...).Decode(o.Model); e != nil {
+		return err.Mongo(e)
 	}
 	return nil
 }
 
-func (o *Odm) Find(result any, filter bson.D, opts ...options.Lister[options.FindOptions]) Error {
+func (o *Odm) Find(result any, filter bson.D, opts ...options.Lister[options.FindOptions]) err.Error {
 	ctx := context.TODO()
-	cursor, err := DB.Collection(o.Model.CollectionName()).Find(ctx, filter, opts...)
-	if err != nil {
-		return Errors.Mongo(err)
+	cursor, e := DB.Collection(o.Model.CollectionName()).Find(ctx, filter, opts...)
+	if e != nil {
+		return err.Mongo(e)
 	}
-	if err = cursor.All(ctx, result); err != nil {
-		return Errors.Mongo(err)
+	if e = cursor.All(ctx, result); e != nil {
+		return err.Mongo(e)
 	}
 	return nil
 }
 
-func (o *Odm) FindBy(result any, field string, value any, opts ...options.Lister[options.FindOptions]) Error {
+func (o *Odm) FindBy(result any, field string, value any, opts ...options.Lister[options.FindOptions]) err.Error {
 	filter := bson.D{bson.E{Key: field, Value: value}}
 	ctx := context.TODO()
-	cursor, err := DB.Collection(o.Model.CollectionName()).Find(ctx, filter, opts...)
-	if err != nil {
-		return Errors.Mongo(err)
+	cursor, e := DB.Collection(o.Model.CollectionName()).Find(ctx, filter, opts...)
+	if e != nil {
+		return err.Mongo(e)
 	}
-	if err = cursor.All(ctx, result); err != nil {
-		return Errors.Mongo(err)
-	}
-	return nil
-}
-
-func (o *Odm) Aggregate(result any, pipeline mongo.Pipeline) Error {
-	ctx := context.TODO()
-	cursor, err := DB.Collection(o.Model.CollectionName()).Aggregate(ctx, pipeline)
-	if err != nil {
-		return Errors.Mongo(err)
-	}
-	if err = cursor.All(ctx, result); err != nil {
-		return Errors.Mongo(err)
+	if e = cursor.All(ctx, result); e != nil {
+		return err.Mongo(e)
 	}
 	return nil
 }
 
-func (o *Odm) AggregateOne(pipeline mongo.Pipeline) Error {
+func (o *Odm) Aggregate(result any, pipeline mongo.Pipeline) err.Error {
 	ctx := context.TODO()
-	cursor, err := DB.Collection(o.Model.CollectionName()).Aggregate(ctx, pipeline)
-	if err != nil {
-		return Errors.Mongo(err)
+	cursor, e := DB.Collection(o.Model.CollectionName()).Aggregate(ctx, pipeline)
+	if e != nil {
+		return err.Mongo(e)
+	}
+	if e = cursor.All(ctx, result); e != nil {
+		return err.Mongo(e)
+	}
+	return nil
+}
+
+func (o *Odm) AggregateOne(pipeline mongo.Pipeline) err.Error {
+	ctx := context.TODO()
+	cursor, e := DB.Collection(o.Model.CollectionName()).Aggregate(ctx, pipeline)
+	if e != nil {
+		return err.Mongo(e)
 	}
 	defer cursor.Close(ctx)
 	if cursor.Next(ctx) {
-		if err := cursor.Decode(o.Model); err != nil {
-			return Errors.Mongo(err)
+		if e := cursor.Decode(o.Model); e != nil {
+			return err.Mongo(e)
 		}
 	} else {
-		return Errors.NoDocumentsf("mongo.Cursor.Next() == false")
+		return err.NotFound("document not found")
 	}
 	return nil
 }
 
-func (o *Odm) Create() Error {
-	if err := o.Model.BeforeCreate(); err != nil {
-		return err
+func (o *Odm) Create() err.Error {
+	if e := o.Model.BeforeCreate(); e != nil {
+		return e
 	}
-	result, err := DB.Collection(o.Model.CollectionName()).InsertOne(context.TODO(), o.Model)
-	if err != nil {
-		return Errors.Mongo(err)
+	result, e := DB.Collection(o.Model.CollectionName()).InsertOne(context.TODO(), o.Model)
+	if e != nil {
+		return err.Mongo(e)
 	}
 	o.Model.SetID(result.InsertedID.(bson.ObjectID))
 
 	return nil
 }
 
-func (o *Odm) CreateBy(validator any) Error {
-	if _, _, err := Fill(o.Model, validator); err != nil {
-		return err
+func (o *Odm) CreateBy(validator any) err.Error {
+	if _, _, e := Fill(o.Model, validator); e != nil {
+		return e
 	}
 	return o.Create()
 }
 
-func (o *Odm) CreateMany(data any) Error {
+func (o *Odm) CreateMany(data any) err.Error {
 
 	v := reflect.ValueOf(data)
 
 	if v.Kind() != reflect.Slice {
-		return Errors.InternalServerErrorf("Create many required a slice")
+		return err.Internal("Create many required a slice")
 	}
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
-		if err := elem.(Model).BeforeCreate(); err != nil {
-			return err
+		if e := elem.(Model).BeforeCreate(); e != nil {
+			return e
 		}
 	}
 	collection := DB.Collection(o.Model.CollectionName())
-	result, err := collection.InsertMany(context.TODO(), data)
-	if err != nil {
-		return Errors.Mongo(err)
+	result, e := collection.InsertMany(context.TODO(), data)
+	if e != nil {
+		return err.Mongo(e)
 	}
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
@@ -164,83 +165,46 @@ func (o *Odm) CreateMany(data any) Error {
 	return nil
 }
 
-func (o *Odm) Update() Error {
-	if err := o.Model.BeforeUpdate(); err != nil {
-		return err
+func (o *Odm) Update() err.Error {
+	if e := o.Model.BeforeUpdate(); e != nil {
+		return e
 	}
 	filter := bson.D{bson.E{Key: "_id", Value: o.Model.GetID()}}
 	update := bson.D{bson.E{Key: "$set", Value: o.Model}}
 
-	result, err := DB.Collection(o.Model.CollectionName()).UpdateOne(context.TODO(), filter, update)
-	if err != nil {
-		return Errors.Mongo(err)
+	result, e := DB.Collection(o.Model.CollectionName()).UpdateOne(context.TODO(), filter, update)
+	if e != nil {
+		return err.Mongo(e)
 	}
 	if result.MatchedCount == 0 {
-		return Errors.NoDocumentsf("mongo.UpdateResult.MatchedCount == 0")
+		return err.NotFound("document not found for update")
 	}
+
 	if result.ModifiedCount == 0 {
-		return Errors.Updatef("mongo.UpdateResult.ModifiedCount == 0")
+		return err.Conflict("no changes were applied to the document")
 	}
 	return nil
 }
 
-func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, Error) {
-	original, dirty, err := Fill(o.Model, validator)
-	if err != nil {
-		return original, dirty, err
+func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, err.Error) {
+	original, dirty, e := Fill(o.Model, validator)
+	if e != nil {
+		return original, dirty, e
 	}
 	return original, dirty, o.Update()
 }
 
 // OjO no usa el hook BeforeUpdate
-func (o *Odm) UpdateOne(filter bson.D, update bson.D) Error {
-	// if err := o.Model.BeforeUpdate(); err != nil {
-	// 	return err
-	// }
-	result, err := DB.Collection(o.Model.CollectionName()).UpdateOne(context.TODO(), filter, update)
-	if err != nil {
-		return Errors.Mongo(err)
-	}
-	if result.MatchedCount == 0 {
-		return Errors.NoDocumentsf("mongo.UpdateResult.MatchedCount == 0")
-	}
-	if result.ModifiedCount == 0 {
-		return Errors.Updatef("mongo.UpdateResult.ModifiedCount == 0")
-	}
-	return nil
-}
 
-func (o *Odm) Delete() Error {
+func (o *Odm) Delete() err.Error {
 	filter := bson.D{bson.E{Key: "_id", Value: o.Model.GetID()}}
 
-	result, err := DB.Collection(o.Model.CollectionName()).DeleteOne(context.TODO(), filter)
-	if err != nil {
-		return Errors.Mongo(err)
+	result, e := DB.Collection(o.Model.CollectionName()).DeleteOne(context.TODO(), filter)
+	if e != nil {
+		return err.Mongo(e)
 	}
 	if result.DeletedCount == 0 {
-		return Errors.ForceDeletef("mongo.DeleteResult.DeletedCount == 0")
-	}
-	return nil
-}
-
-func (o *Odm) DeleteOne(filter bson.D) Error {
-	result, err := DB.Collection(o.Model.CollectionName()).DeleteOne(context.TODO(), filter)
-	if err != nil {
-		return Errors.Mongo(err)
-	}
-	if result.DeletedCount == 0 {
-		return Errors.ForceDeletef("mongo.DeleteResult.DeletedCount == 0")
-	}
-	return nil
-}
-
-func (o *Odm) DeleteMany(filter bson.D) Error {
-	result, err := DB.Collection(o.Model.CollectionName()).DeleteMany(context.TODO(), filter)
-	if err != nil {
-		return Errors.Mongo(err)
-	}
-	if result.DeletedCount == 0 {
-		return Errors.ForceDeletef("mongo.DeleteResult.DeletedCount == 0")
+		return err.Conflict("no changes were applied to the document")
 	}
 	return nil
 }

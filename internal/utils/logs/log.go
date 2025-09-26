@@ -1,4 +1,4 @@
-package log
+package logs
 
 import (
 	"donbarrigon/new/internal/utils/fm"

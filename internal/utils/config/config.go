@@ -2,7 +2,7 @@ package config
 
 import (
 	"bufio"
-	"donbarrigon/new/internal/utils/log"
+	"donbarrigon/new/internal/utils/logs"
 	"os"
 	"strconv"
 	"strings"
@@ -46,7 +46,7 @@ func LoadEnv(filepath ...string) {
 
 	file, err := os.Open(f)
 	if err != nil {
-		log.Error("no fue posible abrir el archivo %v: %v", f, err.Error())
+		logs.Error("no fue posible abrir el archivo %v: %v", f, err.Error())
 		return
 	}
 	defer file.Close()
@@ -64,7 +64,7 @@ func LoadEnv(filepath ...string) {
 
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) != 2 {
-			log.Warning("Error de formato en la línea %v: %v", i, line)
+			logs.Warning("Error de formato en la línea %v: %v", i, line)
 			continue
 		}
 
@@ -77,7 +77,7 @@ func LoadEnv(filepath ...string) {
 		value = strings.Trim(value, `"'`)
 
 		if key == "" {
-			log.Warning("Clave vacía detectada al cargar variables de entorno en la línea %v: %v", i, line)
+			logs.Warning("Clave vacía detectada al cargar variables de entorno en la línea %v: %v", i, line)
 			continue
 		}
 
@@ -133,25 +133,25 @@ func LoadEnv(filepath ...string) {
 		case "LOG_LEVEL":
 			switch strings.ToUpper(strings.TrimSpace(value)) {
 			case "OFF":
-				log.LV = log.OFF
+				logs.LV = logs.OFF
 			case "EMERGENCY":
-				log.LV = log.EMERGENCY
+				logs.LV = logs.EMERGENCY
 			case "ALERT":
-				log.LV = log.ALERT
+				logs.LV = logs.ALERT
 			case "CRITICAL":
-				log.LV = log.CRITICAL
+				logs.LV = logs.CRITICAL
 			case "ERROR":
-				log.LV = log.ERROR
+				logs.LV = logs.ERROR
 			case "WARNING":
-				log.LV = log.WARNING
+				logs.LV = logs.WARNING
 			case "NOTICE":
-				log.LV = log.NOTICE
+				logs.LV = logs.NOTICE
 			case "INFO":
-				log.LV = log.INFO
+				logs.LV = logs.INFO
 			case "DEBUG":
-				log.LV = log.DEBUG
+				logs.LV = logs.DEBUG
 			default:
-				log.LV = log.DEBUG
+				logs.LV = logs.DEBUG
 			}
 		case "LOG_FLAGS":
 			flags := 0
@@ -159,50 +159,50 @@ func LoadEnv(filepath ...string) {
 			for _, part := range parts {
 				switch strings.ToUpper(strings.TrimSpace(part)) {
 				case "TIMESTAMP":
-					flags |= log.FLAG_TIMESTAMP
+					flags |= logs.FLAG_TIMESTAMP
 				case "FILE":
-					flags |= log.FLAG_FILE
+					flags |= logs.FLAG_FILE
 				case "SHORTFILE":
-					flags |= log.FLAG_SHORTFILE
+					flags |= logs.FLAG_SHORTFILE
 				case "LEVEL":
-					flags |= log.FLAG_LEVEL
+					flags |= logs.FLAG_LEVEL
 				case "CONSOLE_AS_JSON":
-					flags |= log.FLAG_CONSOLE_AS_JSON
+					flags |= logs.FLAG_CONSOLE_AS_JSON
 				}
 			}
-			log.Flags = flags
+			logs.Flags = flags
 		case "LOG_OUTPUT":
 			outputs := 0
 			parts := strings.Split(value, ",")
 			for _, part := range parts {
 				switch strings.ToUpper(strings.TrimSpace(part)) {
 				case "CONSOLE":
-					outputs |= log.OUTPUT_CONSOLE
+					outputs |= logs.OUTPUT_CONSOLE
 				case "FILE":
-					outputs |= log.OUTPUT_FILE
+					outputs |= logs.OUTPUT_FILE
 				case "REMOTE":
-					outputs |= log.OUTPUT_REMOTE
+					outputs |= logs.OUTPUT_REMOTE
 				}
 			}
-			log.Outputs = outputs
+			logs.Outputs = outputs
 		case "LOG_PATH":
-			log.Path = value
+			logs.Path = value
 		case "LOG_CHANNEL":
 			value = strings.ToLower(value)
 			if value == "monthly" || value == "weekly" || value == "single" {
-				log.Channel = value
+				logs.Channel = value
 			} else {
-				log.Channel = "daily"
+				logs.Channel = "daily"
 			}
 		case "LOG_DAYS":
 			days, err := strconv.Atoi(value)
 			if err != nil {
-				log.Warning("LOG_DAYS valor inválido en la línea %v: %v", i, value)
+				logs.Warning("LOG_DAYS valor inválido en la línea %v: %v", i, value)
 				continue
 			}
-			log.Days = days
+			logs.Days = days
 		case "LOG_DATE_FORMAT":
-			log.DateFormat = value
+			logs.DateFormat = value
 		case "MAIL_HOST":
 			MailHost = value
 		case "MAIL_PORT":
@@ -216,14 +216,14 @@ func LoadEnv(filepath ...string) {
 		case "MAIL_IDENTITY":
 			MailIdentity = value
 		default:
-			log.Warning("La variable de entorno %v no existe", key)
+			logs.Warning("La variable de entorno %v no existe", key)
 		}
 	}
 
 	if scanner.Err() != nil {
-		log.Error("Error al leer el archivo %v: %v", f, scanner.Err().Error())
+		logs.Error("Error al leer el archivo %v: %v", f, scanner.Err().Error())
 		return
 	}
 
-	log.Info("Configuraciones cargadas: %v", f)
+	logs.Info("Configuraciones cargadas: %v", f)
 }

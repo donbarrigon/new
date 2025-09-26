@@ -1,4 +1,4 @@
-package app
+package db
 
 // GeoPoint es un punto geografico
 type GeoPoint struct {

@@ -12,16 +12,16 @@ type Error interface {
 }
 
 type HttpError struct {
-	Code    int    `json:"code"`
+	Status  int    `json:"-"`
 	Message string `json:"message"`
 	Err     any    `json:"errors,omitempty"`
 }
 
-func New(code int, message string, err any) *HttpError {
+func New(status int, message string, e any) *HttpError {
 	return &HttpError{
-		Code:    code,
+		Status:  status,
 		Message: message,
-		Err:     err,
+		Err:     e,
 	}
 }
 
@@ -30,7 +30,7 @@ func New(code int, message string, err any) *HttpError {
 // ================================
 
 func (e *HttpError) Error() string {
-	return fmt.Sprintf("%s: %v", e.Message, e.Errors)
+	return fmt.Sprintf("%s: %s", e.Message, e.Err)
 }
 
 func (e *HttpError) Errors(l string) *HttpError {
@@ -44,327 +44,326 @@ func (e *HttpError) Errors(l string) *HttpError {
 // ================================
 // 4xx Errores del cliente
 // ================================
-
-func BadRequest(err any) *HttpError {
+func BadRequest(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusBadRequest,
-		Message: "Solicitud incorrecta",
-		Err:     err,
+		Status:  http.StatusBadRequest,
+		Message: "Bad request",
+		Err:     e,
 	}
 }
 
-func Unauthorized(err any) *HttpError {
+func Unauthorized(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusUnauthorized,
-		Message: "No autorizado",
-		Err:     err,
+		Status:  http.StatusUnauthorized,
+		Message: "Unauthorized",
+		Err:     e,
 	}
 }
 
-func PaymentRequired(err any) *HttpError {
+func PaymentRequired(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusPaymentRequired,
-		Message: "Pago requerido",
-		Err:     err,
+		Status:  http.StatusPaymentRequired,
+		Message: "Payment required",
+		Err:     e,
 	}
 }
 
-func Forbidden(err any) *HttpError {
+func Forbidden(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusForbidden,
-		Message: "Prohibido",
-		Err:     err,
+		Status:  http.StatusForbidden,
+		Message: "Forbidden",
+		Err:     e,
 	}
 }
 
-func NotFound(err any) *HttpError {
+func NotFound(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusNotFound,
-		Message: "No encontrado",
-		Err:     err,
+		Status:  http.StatusNotFound,
+		Message: "Not found",
+		Err:     e,
 	}
 }
 
-func MethodNotAllowed(err any) *HttpError {
+func MethodNotAllowed(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusMethodNotAllowed,
-		Message: "Método no permitido",
-		Err:     err,
+		Status:  http.StatusMethodNotAllowed,
+		Message: "Method not allowed",
+		Err:     e,
 	}
 }
 
-func NotAcceptable(err any) *HttpError {
+func NotAcceptable(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusNotAcceptable,
-		Message: "No aceptable",
-		Err:     err,
+		Status:  http.StatusNotAcceptable,
+		Message: "Not acceptable",
+		Err:     e,
 	}
 }
 
-func ProxyAuthRequired(err any) *HttpError {
+func ProxyAuthRequired(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusProxyAuthRequired,
-		Message: "Autenticación de proxy requerida",
-		Err:     err,
+		Status:  http.StatusProxyAuthRequired,
+		Message: "Proxy authentication required",
+		Err:     e,
 	}
 }
 
-func RequestTimeout(err any) *HttpError {
+func RequestTimeout(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusRequestTimeout,
-		Message: "Tiempo de solicitud agotado",
-		Err:     err,
+		Status:  http.StatusRequestTimeout,
+		Message: "Request timeout",
+		Err:     e,
 	}
 }
 
-func Conflict(err any) *HttpError {
+func Conflict(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusConflict,
-		Message: "Conflicto",
-		Err:     err,
+		Status:  http.StatusConflict,
+		Message: "Conflict",
+		Err:     e,
 	}
 }
 
-func Gone(err any) *HttpError {
+func Gone(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusGone,
-		Message: "Recurso no disponible",
-		Err:     err,
+		Status:  http.StatusGone,
+		Message: "Gone",
+		Err:     e,
 	}
 }
 
-func LengthRequired(err any) *HttpError {
+func LengthRequired(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusLengthRequired,
-		Message: "Longitud requerida",
-		Err:     err,
+		Status:  http.StatusLengthRequired,
+		Message: "Length required",
+		Err:     e,
 	}
 }
 
-func PreconditionFailed(err any) *HttpError {
+func PreconditionFailed(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusPreconditionFailed,
-		Message: "Precondición fallida",
-		Err:     err,
+		Status:  http.StatusPreconditionFailed,
+		Message: "Precondition failed",
+		Err:     e,
 	}
 }
 
-func RequestEntityTooLarge(err any) *HttpError {
+func RequestEntityTooLarge(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusRequestEntityTooLarge,
-		Message: "Entidad de solicitud demasiado grande",
-		Err:     err,
+		Status:  http.StatusRequestEntityTooLarge,
+		Message: "Payload too large",
+		Err:     e,
 	}
 }
 
-func RequestURITooLong(err any) *HttpError {
+func RequestURITooLong(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusRequestURITooLong,
-		Message: "URI demasiado larga",
-		Err:     err,
+		Status:  http.StatusRequestURITooLong,
+		Message: "URI too long",
+		Err:     e,
 	}
 }
 
-func UnsupportedMediaType(err any) *HttpError {
+func UnsupportedMediaType(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusUnsupportedMediaType,
-		Message: "Tipo de medio no soportado",
-		Err:     err,
+		Status:  http.StatusUnsupportedMediaType,
+		Message: "Unsupported media type",
+		Err:     e,
 	}
 }
 
-func RequestedRangeNotSatisfiable(err any) *HttpError {
+func RequestedRangeNotSatisfiable(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusRequestedRangeNotSatisfiable,
-		Message: "Rango solicitado no disponible",
-		Err:     err,
+		Status:  http.StatusRequestedRangeNotSatisfiable,
+		Message: "Range not satisfiable",
+		Err:     e,
 	}
 }
 
-func ExpectationFailed(err any) *HttpError {
+func ExpectationFailed(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusExpectationFailed,
-		Message: "Expectativa fallida",
-		Err:     err,
-	}
-
-}
-
-func ImATeapot(err any) *HttpError {
-	return &HttpError{
-		Code:    http.StatusTeapot,
-		Message: "Soy una tetera",
-		Err:     err,
+		Status:  http.StatusExpectationFailed,
+		Message: "Expectation failed",
+		Err:     e,
 	}
 }
 
-func MisdirectedRequest(err any) *HttpError {
+func ImATeapot(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusMisdirectedRequest,
-		Message: "Solicitud mal dirigida",
-		Err:     err,
+		Status:  http.StatusTeapot,
+		Message: "I'm a teapot",
+		Err:     e,
 	}
 }
 
-func UnprocessableEntity(err any) *HttpError {
+func MisdirectedRequest(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusUnprocessableEntity,
-		Message: "Entidad no procesable",
-		Err:     err,
+		Status:  http.StatusMisdirectedRequest,
+		Message: "Misdirected request",
+		Err:     e,
 	}
 }
 
-func Locked(err any) *HttpError {
+func UnprocessableEntity(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusLocked,
-		Message: "Recurso bloqueado",
-		Err:     err,
+		Status:  http.StatusUnprocessableEntity,
+		Message: "Unprocessable entity",
+		Err:     e,
 	}
 }
 
-func FailedDependency(err any) *HttpError {
+func Locked(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusFailedDependency,
-		Message: "Dependencia fallida",
-		Err:     err,
+		Status:  http.StatusLocked,
+		Message: "Locked",
+		Err:     e,
 	}
 }
 
-func TooEarly(err any) *HttpError {
-	return &HttpError{Code: http.StatusTooEarly,
-		Message: "Solicitud demasiado temprana",
-		Err:     err,
+func FailedDependency(e any) *HttpError {
+	return &HttpError{
+		Status:  http.StatusFailedDependency,
+		Message: "Failed dependency",
+		Err:     e,
 	}
 }
 
-func UpgradeRequired(err any) *HttpError {
+func TooEarly(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusUpgradeRequired,
-		Message: "Actualización requerida",
-		Err:     err,
+		Status:  http.StatusTooEarly,
+		Message: "Too early",
+		Err:     e,
 	}
 }
 
-func PreconditionRequired(err any) *HttpError {
+func UpgradeRequired(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusPreconditionRequired,
-		Message: "Precondición requerida",
-		Err:     err,
+		Status:  http.StatusUpgradeRequired,
+		Message: "Upgrade required",
+		Err:     e,
 	}
 }
 
-func TooManyRequests(err any) *HttpError {
+func PreconditionRequired(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusTooManyRequests,
-		Message: "Demasiadas solicitudes",
-		Err:     err,
+		Status:  http.StatusPreconditionRequired,
+		Message: "Precondition required",
+		Err:     e,
 	}
 }
 
-func RequestHeaderFieldsTooLarge(err any) *HttpError {
+func TooManyRequests(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusRequestHeaderFieldsTooLarge,
-		Message: "Encabezados de solicitud demasiado grandes",
-		Err:     err,
+		Status:  http.StatusTooManyRequests,
+		Message: "Too many requests",
+		Err:     e,
 	}
 }
 
-func UnavailableForLegalReasons(err any) *HttpError {
+func RequestHeaderFieldsTooLarge(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusUnavailableForLegalReasons,
-		Message: "No disponible por razones legales",
-		Err:     err,
+		Status:  http.StatusRequestHeaderFieldsTooLarge,
+		Message: "Request header fields too large",
+		Err:     e,
+	}
+}
+
+func UnavailableForLegalReasons(e any) *HttpError {
+	return &HttpError{
+		Status:  http.StatusUnavailableForLegalReasons,
+		Message: "Unavailable for legal reasons",
+		Err:     e,
 	}
 }
 
 // ================================
-// 5xx Errores del servidor
+// 5xx Server errors
 // ================================
 
-func Internal(err any) *HttpError {
+func Internal(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusInternalServerError,
-		Message: "Error interno del servidor",
-		Err:     err,
+		Status:  http.StatusInternalServerError,
+		Message: "Internal server error",
+		Err:     e,
 	}
 }
 
-func NotImplemented(err any) *HttpError {
+func NotImplemented(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusNotImplemented,
-		Message: "No implementado",
-		Err:     err,
+		Status:  http.StatusNotImplemented,
+		Message: "Not implemented",
+		Err:     e,
 	}
 }
 
-func BadGateway(err any) *HttpError {
+func BadGateway(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusBadGateway,
-		Message: "Puerta de enlace incorrecta",
-		Err:     err,
+		Status:  http.StatusBadGateway,
+		Message: "Bad gateway",
+		Err:     e,
 	}
 }
 
-func ServiceUnavailable(err any) *HttpError {
+func ServiceUnavailable(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusServiceUnavailable,
-		Message: "Servicio no disponible",
-		Err:     err,
+		Status:  http.StatusServiceUnavailable,
+		Message: "Service unavailable",
+		Err:     e,
 	}
 }
 
-func GatewayTimeout(err any) *HttpError {
+func GatewayTimeout(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusGatewayTimeout,
-		Message: "Tiempo de espera de la puerta de enlace agotado",
-		Err:     err,
+		Status:  http.StatusGatewayTimeout,
+		Message: "Gateway timeout",
+		Err:     e,
 	}
 }
 
-func HTTPVersionNotSupported(err any) *HttpError {
+func HTTPVersionNotSupported(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusHTTPVersionNotSupported,
-		Message: "Versión HTTP no soportada",
-		Err:     err,
+		Status:  http.StatusHTTPVersionNotSupported,
+		Message: "HTTP version not supported",
+		Err:     e,
 	}
 }
 
-func VariantAlsoNegotiates(err any) *HttpError {
+func VariantAlsoNegotiates(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusVariantAlsoNegotiates,
-		Message: "Negociación de contenido fallida",
-		Err:     err,
+		Status:  http.StatusVariantAlsoNegotiates,
+		Message: "Variant also negotiates",
+		Err:     e,
 	}
 }
 
-func InsufficientStorage(err any) *HttpError {
+func InsufficientStorage(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusInsufficientStorage,
-		Message: "Almacenamiento insuficiente",
-		Err:     err,
+		Status:  http.StatusInsufficientStorage,
+		Message: "Insufficient storage",
+		Err:     e,
 	}
 }
 
-func LoopDetected(err any) *HttpError {
+func LoopDetected(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusLoopDetected,
-		Message: "Bucle detectado",
-		Err:     err,
+		Status:  http.StatusLoopDetected,
+		Message: "Loop detected",
+		Err:     e,
 	}
 }
 
-func NotExtended(err any) *HttpError {
+func NotExtended(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusNotExtended,
-		Message: "Extensión requerida",
-		Err:     err,
+		Status:  http.StatusNotExtended,
+		Message: "Not extended",
+		Err:     e,
 	}
 }
 
-func NetworkAuthenticationRequired(err any) *HttpError {
+func NetworkAuthenticationRequired(e any) *HttpError {
 	return &HttpError{
-		Code:    http.StatusNetworkAuthenticationRequired,
-		Message: "Autenticación de red requerida",
-		Err:     err,
+		Status:  http.StatusNetworkAuthenticationRequired,
+		Message: "Network authentication required",
+		Err:     e,
 	}
 }

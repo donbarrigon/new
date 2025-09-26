@@ -65,7 +65,7 @@ func validate(validator any, rules Rules, e *err.ValidationError) err.Error {
 		field := typ.Field(i)
 		tag := field.Tag.Get("json")
 		tagName := strings.Split(tag, ",")[0]
-		if tagName == "-" {
+		if tagName == "-" || tagName == "id" {
 			continue
 		}
 		if tagName == "" {
@@ -78,7 +78,7 @@ func validate(validator any, rules Rules, e *err.ValidationError) err.Error {
 		value := val.Field(i)
 
 		for _, rule := range validations {
-			if msg, ph, ok := rule.Fun(value, rule.Params...); !ok {
+			if msg, ph, hasError := rule.Fun(value, rule.Params...); hasError {
 				e.Append(tagName, msg, ph)
 			}
 		}

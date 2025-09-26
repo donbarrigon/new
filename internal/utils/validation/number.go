@@ -1,25 +1,23 @@
 package validation
 
 import (
-	"fmt"
+	"donbarrigon/new/internal/utils/fm"
 	"reflect"
 	"strconv"
 	"time"
 )
 
-// Assuming fm.Placeholder is defined somewhere like this:
-// type Placeholder map[string]string
-
-type Placeholder map[string]string
+// Assuming fm.fm.Placeholder is defined somewhere like this:
+// type fm.Placeholder map[string]string
 
 // Min valida que el valor sea mayor o igual al mínimo especificado
-func Min(value reflect.Value, params ...string) (string, Placeholder, bool) {
+func Min(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Parámetro mínimo requerido", Placeholder{}, true
+		return "Parámetro mínimo requerido", fm.Placeholder{}, true
 	}
 
 	minStr := params[0]
-	ph := Placeholder{"min": minStr}
+	ph := fm.Placeholder{"min": minStr}
 
 	switch value.Kind() {
 	case reflect.String:
@@ -86,17 +84,17 @@ func Min(value reflect.Value, params ...string) (string, Placeholder, bool) {
 		}
 	}
 
-	return "", ph, false
+	return "", nil, false
 }
 
 // Max valida que el valor sea menor o igual al máximo especificado
-func Max(value reflect.Value, params ...string) (string, Placeholder, bool) {
+func Max(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Parámetro máximo requerido", Placeholder{}, true
+		return "Parámetro máximo requerido", fm.Placeholder{}, true
 	}
 
 	maxStr := params[0]
-	ph := Placeholder{"max": maxStr}
+	ph := fm.Placeholder{"max": maxStr}
 
 	switch value.Kind() {
 	case reflect.String:
@@ -163,18 +161,18 @@ func Max(value reflect.Value, params ...string) (string, Placeholder, bool) {
 		}
 	}
 
-	return "", ph, false
+	return "", nil, false
 }
 
 // Between valida que el valor esté dentro del rango especificado
-func Between(value reflect.Value, params ...string) (string, Placeholder, bool) {
+func Between(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
 	if len(params) < 2 {
-		return "Se requieren parámetros mínimo y máximo", Placeholder{}, true
+		return "Se requieren parámetros mínimo y máximo", fm.Placeholder{}, true
 	}
 
 	minStr := params[0]
 	maxStr := params[1]
-	ph := Placeholder{"min": minStr, "max": maxStr}
+	ph := fm.Placeholder{"min": minStr, "max": maxStr}
 
 	switch value.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -233,211 +231,5 @@ func Between(value reflect.Value, params ...string) (string, Placeholder, bool) 
 		}
 	}
 
-	return "", ph, false
-}
-
-// Before valida que la fecha sea anterior a la fecha especificada
-func Before(value reflect.Value, params ...string) (string, Placeholder, bool) {
-	if len(params) < 1 {
-		return "Parámetro de fecha requerido", Placeholder{}, true
-	}
-
-	beforeStr := params[0]
-	ph := Placeholder{"date": beforeStr}
-
-	if value.Type() != reflect.TypeOf(time.Time{}) {
-		return "El campo :field debe ser de tipo fecha", ph, true
-	}
-
-	before, err := time.Parse("2006-01-02", beforeStr)
-	if err != nil {
-		before, err = time.Parse("2006-01-02T15:04:05Z07:00", beforeStr)
-		if err != nil {
-			return "Formato de fecha inválido", ph, true
-		}
-	}
-
-	fieldTime := value.Interface().(time.Time)
-	if !fieldTime.Before(before) {
-		return "El campo :field debe ser anterior a :date", ph, true
-	}
-
-	return "", ph, false
-}
-
-// After valida que la fecha sea posterior a la fecha especificada
-func After(value reflect.Value, params ...string) (string, Placeholder, bool) {
-	if len(params) < 1 {
-		return "Parámetro de fecha requerido", Placeholder{}, true
-	}
-
-	afterStr := params[0]
-	ph := Placeholder{"date": afterStr}
-
-	if value.Type() != reflect.TypeOf(time.Time{}) {
-		return "El campo :field debe ser de tipo fecha", ph, true
-	}
-
-	after, err := time.Parse("2006-01-02", afterStr)
-	if err != nil {
-		after, err = time.Parse("2006-01-02T15:04:05Z07:00", afterStr)
-		if err != nil {
-			return "Formato de fecha inválido", ph, true
-		}
-	}
-
-	fieldTime := value.Interface().(time.Time)
-	if !fieldTime.After(after) {
-		return "El campo :field debe ser posterior a :date", ph, true
-	}
-
-	return "", ph, false
-}
-
-// BeforeNow valida que la fecha sea anterior a la fecha actual
-func BeforeNow(value reflect.Value, params ...string) (string, Placeholder, bool) {
-	ph := Placeholder{"date": "ahora"}
-
-	if value.Type() != reflect.TypeOf(time.Time{}) {
-		return "El campo :field debe ser de tipo fecha", ph, true
-	}
-
-	fieldTime := value.Interface().(time.Time)
-	now := time.Now()
-
-	if !fieldTime.Before(now) {
-		return "El campo :field debe ser anterior a la fecha actual", ph, true
-	}
-
-	return "", ph, false
-}
-
-// AfterNow valida que la fecha sea posterior a la fecha actual
-func AfterNow(value reflect.Value, params ...string) (string, Placeholder, bool) {
-	ph := Placeholder{"date": "ahora"}
-
-	if value.Type() != reflect.TypeOf(time.Time{}) {
-		return "El campo :field debe ser de tipo fecha", ph, true
-	}
-
-	fieldTime := value.Interface().(time.Time)
-	now := time.Now()
-
-	if !fieldTime.After(now) {
-		return "El campo :field debe ser posterior a la fecha actual", ph, true
-	}
-
-	return "", ph, false
-}
-
-// In valida que el valor esté presente en la lista de valores permitidos
-func In(value reflect.Value, params ...string) (string, Placeholder, bool) {
-	if len(params) < 1 {
-		return "Se requiere al menos un valor permitido", Placeholder{}, true
-	}
-
-	ph := Placeholder{"values": fmt.Sprintf("%v", params)}
-
-	switch value.Kind() {
-	case reflect.String:
-		valueStr := value.String()
-		for _, param := range params {
-			if valueStr == param {
-				return "", ph, false
-			}
-		}
-		return "El campo :field debe ser uno de los valores :values", ph, true
-
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		valueInt := value.Int()
-		for _, param := range params {
-			if paramInt, e := strconv.ParseInt(param, 10, 64); e == nil {
-				if valueInt == paramInt {
-					return "", ph, false
-				}
-			}
-		}
-		return "El campo :field debe ser uno de los valores :values", ph, true
-
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		valueUint := value.Uint()
-		for _, param := range params {
-			if paramUint, e := strconv.ParseUint(param, 10, 64); e == nil {
-				if valueUint == paramUint {
-					return "", ph, false
-				}
-			}
-		}
-		return "El campo :field debe ser uno de los valores :values", ph, true
-
-	case reflect.Float32, reflect.Float64:
-		valueFloat := value.Float()
-		for _, param := range params {
-			if paramFloat, e := strconv.ParseFloat(param, 64); e == nil {
-				if valueFloat == paramFloat {
-					return "", ph, false
-				}
-			}
-		}
-		return "El campo :field debe ser uno de los valores :values", ph, true
-
-	default:
-		return "Tipo no soportado para validación In", ph, true
-	}
-}
-
-// Nin valida que el valor NO esté presente en la lista de valores prohibidos
-func Nin(value reflect.Value, params ...string) (string, Placeholder, bool) {
-	if len(params) < 1 {
-		return "Se requiere al menos un valor prohibido", Placeholder{}, true
-	}
-
-	ph := Placeholder{"values": fmt.Sprintf("%v", params)}
-
-	switch value.Kind() {
-	case reflect.String:
-		valueStr := value.String()
-		for _, param := range params {
-			if valueStr == param {
-				return "El campo :field no puede ser uno de los valores :values", ph, true
-			}
-		}
-		return "", ph, false
-
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		valueInt := value.Int()
-		for _, param := range params {
-			if paramInt, e := strconv.ParseInt(param, 10, 64); e == nil {
-				if valueInt == paramInt {
-					return "El campo :field no puede ser uno de los valores :values", ph, true
-				}
-			}
-		}
-		return "", ph, false
-
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		valueUint := value.Uint()
-		for _, param := range params {
-			if paramUint, e := strconv.ParseUint(param, 10, 64); e == nil {
-				if valueUint == paramUint {
-					return "El campo :field no puede ser uno de los valores :values", ph, true
-				}
-			}
-		}
-		return "", ph, false
-
-	case reflect.Float32, reflect.Float64:
-		valueFloat := value.Float()
-		for _, param := range params {
-			if paramFloat, e := strconv.ParseFloat(param, 64); e == nil {
-				if valueFloat == paramFloat {
-					return "El campo :field no puede ser uno de los valores :values", ph, true
-				}
-			}
-		}
-		return "", ph, false
-
-	default:
-		return "Tipo no soportado para validación Nin", ph, true
-	}
+	return "", nil, false
 }
