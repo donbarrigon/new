@@ -3,6 +3,8 @@ package handler
 import (
 	"bytes"
 	"donbarrigon/new/internal/utils/err"
+	"donbarrigon/new/internal/utils/fm"
+	"donbarrigon/new/internal/utils/lang"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -61,34 +63,6 @@ func (c *HttpContext) GetBody(request any) err.Error {
 	return nil
 }
 
-func (c *HttpContext) ValidateBody(req Validator) err.Error {
-
-	if e := c.GetBody(req); e != nil {
-		return e
-	}
-
-	errPFV := req.PrepareForValidation(c)
-	if errPFV != nil {
-		errPFV = errPFV.Errors()
-	}
-	if err := Validate(c, req); err != nil {
-		if errPFV != nil {
-			errMap, phMap := errPFV.GetMap()
-			for key, valor := range errMap {
-				for i, msg := range valor {
-					err.Append(&FieldError{
-						FieldName:    key,
-						Message:      msg,
-						Placeholders: phMap[key][i],
-					})
-				}
-			}
-		}
-		return err.Errors()
-	}
-	return errPFV
-}
-
 func (c *HttpContext) GetParam(param string, defaultValue string) string {
 	if value := c.Params[param]; value != "" {
 		return value
@@ -107,27 +81,17 @@ func (c *HttpContext) ResponseJSON(status int, data any) {
 	if err := json.NewEncoder(c.Writer).Encode(data); err != nil {
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		c.Writer.WriteHeader(500)
-		c.Writer.Write([]byte(Translate(c.Lang(), `{"message": "Error", "error": "Could not encode the response"}`)))
+		c.Writer.Write([]byte(lang.T(c.Lang(), `{"message": "Error", "error": "Could not encode the response"}`, nil)))
 	}
 }
 
-func (c *HttpContext) ResponseError(err Error) {
-	err.Translate(c.Lang())
-	c.ResponseJSON(err.GetStatus(), err)
+func (c *HttpContext) ResponseError(e err.Error) {
+	er := e.Errors(c.Lang())
+	c.ResponseJSON(er.Status, er)
 }
 
 func (c *HttpContext) ResponseNotFound() {
-	c.ResponseError(Errors.NotFoundf("The resource [{method}:{path}] does not exist",
-		Entry{"method", c.Request.Method},
-		Entry{"path", c.Request.URL.Path},
-	))
-}
-
-func (c *HttpContext) ResponseMessage(code int, data any, message string, ph ...Entry) {
-	c.ResponseJSON(code, &MessageResource{
-		Message: Translate(c.Lang(), message, ph...),
-		Data:    data,
-	})
+	c.ResponseError(err.NotFound(lang.T(c.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": c.Request.Method, "path": c.Request.URL.Path})))
 }
 
 func (c *HttpContext) ResponseOk(data any) {
@@ -146,7 +110,7 @@ func (c *HttpContext) ResponseCSV(fileName string, data any, comma ...rune) {
 	val := reflect.ValueOf(data)
 
 	if val.Kind() != reflect.Slice {
-		err := &Err{
+		err := &err.HttpError{
 			Status:  http.StatusInternalServerError,
 			Message: "Error writing CSV",
 			Err:     "Data is not a slice of structs",
@@ -165,7 +129,7 @@ func (c *HttpContext) ResponseCSV(fileName string, data any, comma ...rune) {
 	writer.Comma = del
 
 	if val.Len() == 0 {
-		err := Errors.NoDocumentsf("No data available")
+		err := err.NotFound("No data available")
 		c.ResponseError(err)
 		return
 	}

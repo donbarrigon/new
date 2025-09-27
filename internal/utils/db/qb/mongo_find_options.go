@@ -1,10 +1,10 @@
 package qb
 
 import (
+	"donbarrigon/new/internal/utils/handler"
 	"strconv"
 	"strings"
 
-	"github.com/donbarrigon/nuevo-proyecto/internal/app"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -24,7 +24,7 @@ import (
 //	projection=campo1,campo2,campo3 (solo incluye estos campos en el resultado)
 //	projection=campo1&projection=campo2&projection=campo3 (incluye estos tres campos en el resultado)
 //	projection=id excluye '_id' (el campo por defecto siempre se incluye a menos que se indique lo contrario).
-func FindOptions(ctx *app.HttpContext) *options.FindOptionsBuilder {
+func FindOptions(ctx *handler.HttpContext) *options.FindOptionsBuilder {
 	findOptions := options.Find()
 	urlValues := ctx.Request.URL.Query()
 
