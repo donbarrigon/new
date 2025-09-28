@@ -3,6 +3,10 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"donbarrigon/new/internal/utils/config"
+	"donbarrigon/new/internal/utils/db"
+	"donbarrigon/new/internal/utils/logs"
+	"donbarrigon/new/internal/utils/router"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,56 +17,56 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-func ServerStart(routes *Routes) {
-	router := &Router{}
-	router.Make(routes)
+func ServerStart(routes *router.Routes) {
+	r := &router.Router{}
+	r.Make(routes)
 
 	var tlsConfig *tls.Config
 
-	if Env.SERVER_HTTPS_ENABLED {
+	if config.ServerHttpsEnabled {
 		manager := &autocert.Manager{
-			Cache:      autocert.DirCache(Env.SERVER_HTTPS_CERT_PATH), // Carpeta donde guarda los certs
+			Cache:      autocert.DirCache(config.ServerHttpsCertPath), // Carpeta donde guarda los certs
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(strings.Split(Env.SERVER_HOST_WHITE_LIST, ",")...),
+			HostPolicy: autocert.HostWhitelist(strings.Split(config.ServerHostWhiteList, ",")...),
 		}
 		tlsConfig = manager.TLSConfig()
 		go func() {
 			// Redirigir todo lo que llegue por HTTP a HTTPS
 			if er := http.ListenAndServe(":80", manager.HTTPHandler(nil)); er != nil {
-				PrintError("🔴💥 Could not start server http port 80: :error", Entry{"error", er.Error()})
+				logs.Error("🔴💥 No se inicio el server en el puerto 80: %s", er.Error())
 			}
 		}()
 	}
 
 	server := &http.Server{
-		Addr:         ":" + Env.SERVER_PORT,
-		Handler:      router.HandlerFunction(),
+		Addr:         ":" + config.ServerPort,
+		Handler:      r.HandlerFunction(),
 		TLSConfig:    tlsConfig,
-		ReadTimeout:  time.Duration(Env.SERVER_READ_TIMEOUT) * time.Second,
-		WriteTimeout: time.Duration(Env.SERVER_WRITE_TIMEOUT) * time.Second,
-		IdleTimeout:  time.Duration(Env.SERVER_READ_TIMEOUT+Env.SERVER_WRITE_TIMEOUT) * time.Second,
+		ReadTimeout:  time.Duration(config.ServerReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(config.ServerWriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(config.ServerReadTimeout+config.ServerWriteTimeout) * time.Second,
 	}
 
-	PrintInfo(`🚀 Server running on :app_url 
+	logs.Info(`🚀 Server running on :%s 
   ____   ___  ____  ____  ___  ___  _   _ ____   ___
  / ___| / _ \|  _ \|  _ \|_ _|| __|| \ | |  _ \ / _ \
 | |    | | | | |_) | |_) || ||||__ |  \| | | | | | | |
 | |___ | |_| |  _ <|  _ < | ||||__ | |\  | |_| | |_| |
  \____(_)___/|_| \_\_| \_\___||___||_| \_|____/ \___/
-`, Entry{"app_url", Env.APP_URL})
+`, config.AppURL)
 
 	// funciona en dev pero en produccion es feo.
 	// espera la señal en segundo plano, el bun run dev lo reinicia pero el main se termina y no salen los mensajes
 	go HttpServerGracefulShutdown(server)
 	time.Sleep(100 * time.Millisecond) // para que salga el mensaje de corriendo.
 
-	if Env.SERVER_HTTPS_ENABLED {
+	if config.ServerHttpsEnabled {
 		if err := server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
-			PrintError("🔴💥 Could not start server tls: :error", Entry{"error", err.Error()})
+			logs.Error("🔴💥 Could not start server tls: %s", err.Error())
 		}
 	} else {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			PrintError("🔴💥 Could not start server: :error", Entry{"error", err.Error()})
+			logs.Error("🔴💥 Could not start server: %s", err.Error())
 		}
 	}
 
@@ -89,13 +93,13 @@ func HttpServerGracefulShutdown(server *http.Server) {
 
 	// Espera por la señal de terminación
 	<-sigChan
-	PrintInfo("⏻ Initiating controlled server shutdown...")
+	logs.Info("⏻ Initiating controlled server shutdown...")
 
 	// se cierra la conexion con mono db
-	if err := CloseMongoDB(); err != nil {
-		PrintWarning("🔴💥 Error closing connection to MongoDB :err", Entry{"err", err.Error()})
+	if err := db.CloseMongoDB(); err != nil {
+		logs.Warning("🔴💥 Error closing connection to MongoDB %s", err.Error())
 	} else {
-		PrintInfo("🔌 Connection to MongoDB successfully closed")
+		logs.Info("🔌 Connection to MongoDB successfully closed")
 	}
 
 	// Crea un contexto con timeout para el shutdown
@@ -104,10 +108,10 @@ func HttpServerGracefulShutdown(server *http.Server) {
 
 	//se cierra el servidor HTTP para que no acepte nuevas conexiones
 	if err := server.Shutdown(ctx); err != nil {
-		PrintWarning("⏻ Server forced to close: :err", Entry{"err", err.Error()})
+		logs.Warning("⏻ Server forced to close: %s", err.Error())
 	} else {
-		PrintInfo("⏻ HTTP server stopped successfully")
+		logs.Info("⏻ HTTP server stopped successfully")
 	}
 
-	PrintInfo("💀 Apagado controlado completado")
+	logs.Info("💀 Apagado controlado completado")
 }
