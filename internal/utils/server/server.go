@@ -1,12 +1,12 @@
-package app
+package server
 
 import (
 	"context"
 	"crypto/tls"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/db"
+	"donbarrigon/new/internal/utils/handler"
 	"donbarrigon/new/internal/utils/logs"
-	"donbarrigon/new/internal/utils/router"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,10 +17,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-func ServerStart(routes *router.Routes) {
-	r := &router.Router{}
-	r.Make(routes)
-
+func Start(h *handler.Handler) {
 	var tlsConfig *tls.Config
 
 	if config.ServerHttpsEnabled {
@@ -40,7 +37,7 @@ func ServerStart(routes *router.Routes) {
 
 	server := &http.Server{
 		Addr:         ":" + config.ServerPort,
-		Handler:      r.HandlerFunction(),
+		Handler:      h,
 		TLSConfig:    tlsConfig,
 		ReadTimeout:  time.Duration(config.ServerReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(config.ServerWriteTimeout) * time.Second,
@@ -62,11 +59,11 @@ func ServerStart(routes *router.Routes) {
 
 	if config.ServerHttpsEnabled {
 		if err := server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
-			logs.Error("🔴💥 Could not start server tls: %s", err.Error())
+			logs.Error("💥 Could not start server tls: %s", err.Error())
 		}
 	} else {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logs.Error("🔴💥 Could not start server: %s", err.Error())
+			logs.Error("💥 Could not start server: %s", err.Error())
 		}
 	}
 
@@ -75,11 +72,11 @@ func ServerStart(routes *router.Routes) {
 	// go func() {
 	// 	if Env.SERVER_HTTPS_ENABLED {
 	// 		if err := server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
-	// 			PrintError("🔴💥 Could not start server: :error", Entry{"error", err.Error()})
+	// 			PrintError("💥 Could not start server: :error", Entry{"error", err.Error()})
 	// 		}
 	// 	} else {
 	// 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-	// 			PrintError("🔴💥 Could not start server: :error", Entry{"error", err.Error()})
+	// 			PrintError("💥 Could not start server: :error", Entry{"error", err.Error()})
 	// 		}
 	// 	}
 	// }()
@@ -97,7 +94,7 @@ func HttpServerGracefulShutdown(server *http.Server) {
 
 	// se cierra la conexion con mono db
 	if err := db.CloseMongoDB(); err != nil {
-		logs.Warning("🔴💥 Error closing connection to MongoDB %s", err.Error())
+		logs.Warning("💥 Error closing connection to MongoDB %s", err.Error())
 	} else {
 		logs.Info("🔌 Connection to MongoDB successfully closed")
 	}

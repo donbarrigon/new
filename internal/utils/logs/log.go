@@ -18,26 +18,26 @@ type LogLevel int
 type LogFileFormat int
 
 type Logger struct {
-	ID           string   `json:"id,omitempty"      yaml:"id,omitempty"      xml:"id,omitempty"`
-	Time         string   `json:"time,omitempty"    yaml:"time,omitempty"    xml:"time,omitempty"`
-	Level        LogLevel `json:"level,omitempty"   yaml:"level,omitempty"   xml:"level,omitempty"`
-	Message      string   `json:"message"           yaml:"message"           xml:"message"`
-	Line         string   `json:"line,omitempty"    yaml:"line,omitempty"    xml:"line,omitempty"`
-	File         string   `json:"file,omitempty"    yaml:"file,omitempty"    xml:"file,omitempty"`
-	Placeholders []any    `json:"context,omitempty" yaml:"context,omitempty" xml:"context,omitempty"`
+	ID           string   `json:"id,omitempty"    yaml:"id,omitempty"    xml:"id,omitempty"`
+	Time         string   `json:"time,omitempty"  yaml:"time,omitempty"  xml:"time,omitempty"`
+	Level        LogLevel `json:"level,omitempty" yaml:"level,omitempty" xml:"level,omitempty"`
+	Message      string   `json:"message"         yaml:"message"         xml:"message"`
+	Line         string   `json:"line,omitempty"  yaml:"line,omitempty"  xml:"line,omitempty"`
+	File         string   `json:"file,omitempty"  yaml:"file,omitempty"  xml:"file,omitempty"`
+	Placeholders []any    `json:"-"               yaml:"-"               xml:"-"`
 }
 
 const (
-	OFF       LogLevel = iota // 0 - Desactiva todos los logs
-	EMERGENCY                 // 1 - El sistema está inutilizable
-	ALERT                     // 2 - Se necesita acción inmediata
-	CRITICAL                  // 3 - Fallo crítico del sistema
-	ERROR                     // 4 - Errores de ejecución
-	WARNING                   // 5 - Algo inesperado pasó
-	NOTICE                    // 6 - Eventos normales, pero significativos
-	INFO                      // 7 - Información general
-	DEBUG                     // 8 - Información detallada para depuración
-	PRINT                     // 9 - Solo imprime en consola
+	EMERGENCY LogLevel = iota // 0 - El sistema está inutilizable
+	ALERT                     // 1 - Se necesita acción inmediata
+	CRITICAL                  // 2 - Fallo crítico del sistema
+	ERROR                     // 3 - Errores de ejecución
+	WARNING                   // 4 - Algo inesperado pasó
+	NOTICE                    // 5 - Eventos normales, pero significativos
+	INFO                      // 6 - Información general
+	DEBUG                     // 7 - Información detallada para depuración
+	PRINT                     // 8 - Solo imprime en consola
+	OFF                       // 9 - Desactiva todos los logs
 )
 
 const (
@@ -63,11 +63,11 @@ const (
 )
 
 var LV LogLevel = DEBUG
-var Flags = FLAG_TIMESTAMP | FLAG_FILE | FLAG_SHORTFILE | FLAG_LEVEL | FLAG_CONSOLE_AS_JSON | FLAG_CONSOLE_COLOR
+var Flags = FLAG_TIMESTAMP | FLAG_FILE | FLAG_SHORTFILE | FLAG_LEVEL | FLAG_CONSOLE_COLOR
 var Outputs = OUTPUT_CONSOLE | OUTPUT_FILE
 var FileFormat = FILE_FORMAT_NDJSON
 var DateFormat = "2006-01-02 15:04:05.000"
-var Path = "./log"
+var Path = "./tmp/logs"
 var Channel = "daily"
 var Days = 30
 
@@ -155,105 +155,120 @@ func (l LogLevel) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 func Emergency(msg string, ph ...any) {
-	if LV >= EMERGENCY {
-		l := &Logger{
-			Level:        EMERGENCY,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if EMERGENCY > LV {
+		return
 	}
+	l := &Logger{
+		Level:        EMERGENCY,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
 }
 
 func Alert(msg string, ph ...any) {
-	if LV >= ALERT {
-		l := &Logger{
-			Level:        ALERT,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if ALERT > LV {
+		return
 	}
+	l := &Logger{
+		Level:        ALERT,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
+
 }
 
 func Critical(msg string, ph ...any) {
-	if LV >= CRITICAL {
-		l := &Logger{
-			Level:        CRITICAL,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if CRITICAL > LV {
+		return
 	}
+	l := &Logger{
+		Level:        CRITICAL,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
+
 }
 
 func Error(msg string, ph ...any) {
-	if LV >= ERROR {
-		l := &Logger{
-			Level:        ERROR,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if ERROR > LV {
+		return
 	}
+	l := &Logger{
+		Level:        ERROR,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
 }
 
 func Warning(msg string, ph ...any) {
-	if LV >= WARNING {
-		l := &Logger{
-			Level:        WARNING,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if WARNING > LV {
+		return
 	}
+	l := &Logger{
+		Level:        WARNING,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
 }
 
 func Notice(msg string, ph ...any) {
-	if LV >= NOTICE {
-		l := &Logger{
-			Level:        NOTICE,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if NOTICE > LV {
+		return
 	}
+	l := &Logger{
+		Level:        NOTICE,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
+
 }
 
 func Info(msg string, ph ...any) {
-	if LV >= INFO {
-		l := &Logger{
-			Level:        INFO,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if INFO > LV {
+		return
 	}
+	l := &Logger{
+		Level:        INFO,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
 }
 
 func Debug(msg string, ph ...any) {
-	if LV >= DEBUG {
-		l := &Logger{
-			Level:        DEBUG,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if DEBUG > LV {
+		return
 	}
+	l := &Logger{
+		Level:        DEBUG,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
 }
 
 func Log(level LogLevel, msg string, ph ...any) {
-	if LV >= level {
-		l := &Logger{
-			Level:        level,
-			Message:      msg,
-			Placeholders: ph,
-		}
-		l.output()
+	if level > LV {
+		return
 	}
+	l := &Logger{
+		Level:        level,
+		Message:      msg,
+		Placeholders: ph,
+	}
+	l.output()
 }
 
 func Print(msg string, ph ...any) {
+	if PRINT > LV {
+		return
+	}
 	l := &Logger{
 		Level:        PRINT,
 		Message:      msg,

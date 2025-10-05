@@ -24,7 +24,7 @@ import (
 //	projection=campo1,campo2,campo3 (solo incluye estos campos en el resultado)
 //	projection=campo1&projection=campo2&projection=campo3 (incluye estos tres campos en el resultado)
 //	projection=id excluye '_id' (el campo por defecto siempre se incluye a menos que se indique lo contrario).
-func FindOptions(ctx *handler.HttpContext) *options.FindOptionsBuilder {
+func FindOptions(ctx *handler.Context) *options.FindOptionsBuilder {
 	findOptions := options.Find()
 	urlValues := ctx.Request.URL.Query()
 

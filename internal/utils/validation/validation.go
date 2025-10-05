@@ -19,10 +19,10 @@ type Rules map[string][]Rule
 
 type Validator interface {
 	Rules() Rules
-	PrepareForValidation(c *handler.HttpContext) *err.ValidationError
+	PrepareForValidation(c *handler.Context) *err.ValidationError
 }
 
-func Body(c *handler.HttpContext, validator Validator) err.Error {
+func Body(c *handler.Context, validator Validator) err.Error {
 	if e := c.GetBody(validator); e != nil {
 		return e
 	}

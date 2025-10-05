@@ -16,6 +16,7 @@ var (
 	AppKey    string = ""
 	AppURL    string = "http://localhost:3000"
 	AppLocale string = "es"
+	AppDebug  bool   = false
 
 	ServerPort          string = "3000"
 	ServerHttpsEnabled  bool   = false
