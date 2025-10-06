@@ -19,17 +19,12 @@ import (
 type AuthInterface interface {
 	GetID() bson.ObjectID
 	GetUserID() bson.ObjectID
-	Can(permissionName ...string) err.Error
-	HasRole(roleName ...string) err.Error
+	Can(permissionName string) err.Error
+	HasRole(roleName string) err.Error
 }
 
 type Validator interface {
 	PrepareForValidation(hc *Context) err.Error
-}
-
-type MessageResource struct {
-	Message string `json:"message"`
-	Data    any    `json:"data"`
 }
 
 type Context struct {
