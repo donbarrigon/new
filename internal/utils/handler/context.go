@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"donbarrigon/new/internal/utils/auth"
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/fm"
 	"donbarrigon/new/internal/utils/lang"
@@ -31,7 +32,7 @@ type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request
 	handler *Handler
-	Auth    AuthInterface
+	Session *auth.Session
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request, h *Handler) *Context {

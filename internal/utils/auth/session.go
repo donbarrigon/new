@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -29,6 +31,8 @@ type Session struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	ExpiresAt   time.Time
+	writer      http.ResponseWriter
+	request     *http.Request
 }
 
 var muSession = sync.Map{}
@@ -77,14 +81,45 @@ func (s *Session) Destroy() err.Error {
 	if e := s.deleteFileSession(); e != nil {
 		return e
 	}
+	s.ClearCookie()
+
 	muUser := s.muUser()
 	muUser.Lock()
 	defer muUser.Unlock()
 	return s.removeFileUserIndex()
 }
 
+func (s *Session) SetCookie() {
+	http.SetCookie(s.writer, &http.Cookie{
+		Name:     "session",
+		Value:    s.Token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   config.ServerHttpsEnabled,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  s.ExpiresAt,
+	})
+}
+
+func (s *Session) ClearCookie() {
+	http.SetCookie(s.writer, &http.Cookie{
+		Name:     "session",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   config.ServerHttpsEnabled,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0), // <- opcional: fecha expirada
+	})
+}
+
+func (s *Session) Can(permission string) bool {
+	return s.Permissions[permission]
+}
+
 func (s *Session) saveFileSession() err.Error {
-	path, filename := s.fileSession()
+	path, filename := fileSession(s.Token)
 	encoded, e := msgpack.Marshal(s)
 	if e != nil {
 		return err.New(err.INTERNAL, "No se pudo codificar la sesion", e)
@@ -99,7 +134,7 @@ func (s *Session) saveFileSession() err.Error {
 }
 
 func (s *Session) saveFileUserIndex(data map[string]time.Time) err.Error {
-	path, filename := s.fileUserIndex()
+	path, filename := fileUserIndex(s.UserID.Hex())
 	encoded, e := msgpack.Marshal(data)
 	if e != nil {
 		return err.New(err.INTERNAL, "No se pudo codificar el indice de sessiones", e)
@@ -123,7 +158,7 @@ func (s *Session) addFileUserIndex() err.Error {
 }
 
 func (s *Session) deleteFileSession() err.Error {
-	path, fileName := s.fileSession()
+	path, fileName := fileSession(s.Token)
 	if e := os.Remove(path + fileName); e != nil {
 		return err.New(err.INTERNAL, "No se cerró la sesion", e)
 	}
@@ -143,7 +178,7 @@ func (s *Session) removeFileUserIndex() err.Error {
 }
 
 func (s *Session) deleteFileUserIndex() err.Error {
-	path, fileName := s.fileUserIndex()
+	path, fileName := fileUserIndex(s.UserID.Hex())
 	if e := os.Remove(path + fileName); e != nil {
 		return err.New(err.INTERNAL, "No se eliminó el indice de la sesion", e)
 	}
@@ -152,7 +187,7 @@ func (s *Session) deleteFileUserIndex() err.Error {
 
 func (s *Session) readFileUserIndex() (map[string]time.Time, err.Error) {
 	data := map[string]time.Time{}
-	path, filename := s.fileUserIndex()
+	path, filename := fileUserIndex(s.UserID.Hex())
 	info, e := os.Stat(path + filename)
 	if e == nil && !info.IsDir() {
 		encoded, e := os.ReadFile(path + filename)
@@ -174,13 +209,4 @@ func (s *Session) muUser() *sync.Mutex {
 func (s *Session) muToken() *sync.Mutex {
 	mu, _ := muSession.LoadOrStore(s.Token, &sync.Mutex{})
 	return mu.(*sync.Mutex)
-}
-
-func (s *Session) fileSession() (string, string) {
-	return "tmp/sessions/" + s.Token[:3] + "/" + s.Token[3:6] + "/", s.Token[6:]
-}
-
-func (s *Session) fileUserIndex() (string, string) {
-	hex := s.UserID.Hex()
-	return "tmp/sessions/index/" + hex[:4] + "/" + hex[4:8] + "/", hex[8:]
 }
