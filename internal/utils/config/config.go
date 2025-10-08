@@ -26,6 +26,7 @@ var (
 	ServerWriteTimeout  int    = 30
 
 	SessionLifetime int = 10080
+	SessionDriver   int = SESSION_DRIVER_FILE
 
 	DbName             string = "samplemflix"
 	DbConnectionString string = "mongodb://localhost:27017"
@@ -38,6 +39,10 @@ var (
 	MailFromName string = "Don Barrigon"
 	MailIdentity string = "donbarrigon@gmail.com"
 )
+
+const SESSION_DRIVER_FILE = 0
+const SESSION_DRIVER_MONGO = 1
+const SESSION_DRIVER_REDIS = 2
 
 func LoadEnv(filepath ...string) {
 	f := ".env"

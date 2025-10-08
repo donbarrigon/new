@@ -55,7 +55,7 @@ func (e *HttpError) Errors(l string) *HttpError {
 func BadRequest(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusBadRequest,
-		Message: "Bad request",
+		Message: "Algo no está bien con tu solicitud",
 		Err:     errorData(e),
 	}
 }
@@ -63,7 +63,7 @@ func BadRequest(e any) *HttpError {
 func Unauthorized(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusUnauthorized,
-		Message: "Unauthorized",
+		Message: "Necesitas iniciar sesión para continuar",
 		Err:     errorData(e),
 	}
 }
@@ -71,7 +71,7 @@ func Unauthorized(e any) *HttpError {
 func PaymentRequired(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusPaymentRequired,
-		Message: "Payment required",
+		Message: "Se requiere un pago para acceder",
 		Err:     errorData(e),
 	}
 }
@@ -79,7 +79,7 @@ func PaymentRequired(e any) *HttpError {
 func Forbidden(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusForbidden,
-		Message: "Forbidden",
+		Message: "No tienes permiso para hacer esto",
 		Err:     errorData(e),
 	}
 }
@@ -87,7 +87,7 @@ func Forbidden(e any) *HttpError {
 func NotFound(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusNotFound,
-		Message: "Not found",
+		Message: "No encontramos lo que buscas",
 		Err:     errorData(e),
 	}
 }
@@ -95,7 +95,7 @@ func NotFound(e any) *HttpError {
 func MethodNotAllowed(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusMethodNotAllowed,
-		Message: "Method not allowed",
+		Message: "Esta acción no está permitida",
 		Err:     errorData(e),
 	}
 }
@@ -103,7 +103,7 @@ func MethodNotAllowed(e any) *HttpError {
 func NotAcceptable(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusNotAcceptable,
-		Message: "Not acceptable",
+		Message: "No podemos procesar tu solicitud en este formato",
 		Err:     errorData(e),
 	}
 }
@@ -111,7 +111,7 @@ func NotAcceptable(e any) *HttpError {
 func ProxyAuthRequired(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusProxyAuthRequired,
-		Message: "Proxy authentication required",
+		Message: "Se requiere autenticación del proxy",
 		Err:     errorData(e),
 	}
 }
@@ -119,7 +119,7 @@ func ProxyAuthRequired(e any) *HttpError {
 func RequestTimeout(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusRequestTimeout,
-		Message: "Request timeout",
+		Message: "La solicitud tardó demasiado tiempo",
 		Err:     errorData(e),
 	}
 }
@@ -127,7 +127,7 @@ func RequestTimeout(e any) *HttpError {
 func Conflict(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusConflict,
-		Message: "Conflict",
+		Message: "Hay un conflicto con los datos existentes",
 		Err:     errorData(e),
 	}
 }
@@ -135,7 +135,7 @@ func Conflict(e any) *HttpError {
 func Gone(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusGone,
-		Message: "Gone",
+		Message: "Este recurso ya no está disponible",
 		Err:     errorData(e),
 	}
 }
@@ -143,7 +143,7 @@ func Gone(e any) *HttpError {
 func LengthRequired(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusLengthRequired,
-		Message: "Length required",
+		Message: "Falta información del tamaño de la solicitud",
 		Err:     errorData(e),
 	}
 }
@@ -151,7 +151,7 @@ func LengthRequired(e any) *HttpError {
 func PreconditionFailed(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusPreconditionFailed,
-		Message: "Precondition failed",
+		Message: "No se cumplen las condiciones necesarias",
 		Err:     errorData(e),
 	}
 }
@@ -159,7 +159,7 @@ func PreconditionFailed(e any) *HttpError {
 func RequestEntityTooLarge(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusRequestEntityTooLarge,
-		Message: "Payload too large",
+		Message: "El archivo o datos son demasiado grandes",
 		Err:     errorData(e),
 	}
 }
@@ -167,7 +167,7 @@ func RequestEntityTooLarge(e any) *HttpError {
 func RequestURITooLong(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusRequestURITooLong,
-		Message: "URI too long",
+		Message: "La dirección es demasiado larga",
 		Err:     errorData(e),
 	}
 }
@@ -175,7 +175,7 @@ func RequestURITooLong(e any) *HttpError {
 func UnsupportedMediaType(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusUnsupportedMediaType,
-		Message: "Unsupported media type",
+		Message: "El tipo de archivo no es compatible",
 		Err:     errorData(e),
 	}
 }
@@ -183,7 +183,7 @@ func UnsupportedMediaType(e any) *HttpError {
 func RequestedRangeNotSatisfiable(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusRequestedRangeNotSatisfiable,
-		Message: "Range not satisfiable",
+		Message: "El rango solicitado no es válido",
 		Err:     errorData(e),
 	}
 }
@@ -191,7 +191,7 @@ func RequestedRangeNotSatisfiable(e any) *HttpError {
 func ExpectationFailed(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusExpectationFailed,
-		Message: "Expectation failed",
+		Message: "No se pudo cumplir con lo esperado",
 		Err:     errorData(e),
 	}
 }
@@ -199,7 +199,7 @@ func ExpectationFailed(e any) *HttpError {
 func ImATeapot(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusTeapot,
-		Message: "I'm a teapot",
+		Message: "Soy una tetera, no puedo hacer café",
 		Err:     errorData(e),
 	}
 }
@@ -207,7 +207,7 @@ func ImATeapot(e any) *HttpError {
 func MisdirectedRequest(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusMisdirectedRequest,
-		Message: "Misdirected request",
+		Message: "Tu solicitud fue enviada al lugar equivocado",
 		Err:     errorData(e),
 	}
 }
@@ -215,7 +215,7 @@ func MisdirectedRequest(e any) *HttpError {
 func UnprocessableEntity(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusUnprocessableEntity,
-		Message: "Unprocessable entity",
+		Message: "No pudimos procesar la información que enviaste",
 		Err:     errorData(e),
 	}
 }
@@ -223,7 +223,7 @@ func UnprocessableEntity(e any) *HttpError {
 func Locked(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusLocked,
-		Message: "Locked",
+		Message: "Este recurso está bloqueado",
 		Err:     errorData(e),
 	}
 }
@@ -231,7 +231,7 @@ func Locked(e any) *HttpError {
 func FailedDependency(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusFailedDependency,
-		Message: "Failed dependency",
+		Message: "Algo que necesitamos no funcionó correctamente",
 		Err:     errorData(e),
 	}
 }
@@ -239,7 +239,7 @@ func FailedDependency(e any) *HttpError {
 func TooEarly(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusTooEarly,
-		Message: "Too early",
+		Message: "Es demasiado pronto para esta solicitud",
 		Err:     errorData(e),
 	}
 }
@@ -247,7 +247,7 @@ func TooEarly(e any) *HttpError {
 func UpgradeRequired(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusUpgradeRequired,
-		Message: "Upgrade required",
+		Message: "Necesitas actualizar tu aplicación",
 		Err:     errorData(e),
 	}
 }
@@ -255,7 +255,7 @@ func UpgradeRequired(e any) *HttpError {
 func PreconditionRequired(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusPreconditionRequired,
-		Message: "Precondition required",
+		Message: "Faltan algunos requisitos previos",
 		Err:     errorData(e),
 	}
 }
@@ -263,7 +263,7 @@ func PreconditionRequired(e any) *HttpError {
 func TooManyRequests(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusTooManyRequests,
-		Message: "Too many requests",
+		Message: "Has hecho demasiadas solicitudes, espera un momento",
 		Err:     errorData(e),
 	}
 }
@@ -271,7 +271,7 @@ func TooManyRequests(e any) *HttpError {
 func RequestHeaderFieldsTooLarge(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusRequestHeaderFieldsTooLarge,
-		Message: "Request header fields too large",
+		Message: "La información de tu solicitud es demasiado grande",
 		Err:     errorData(e),
 	}
 }
@@ -279,7 +279,7 @@ func RequestHeaderFieldsTooLarge(e any) *HttpError {
 func UnavailableForLegalReasons(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusUnavailableForLegalReasons,
-		Message: "Unavailable for legal reasons",
+		Message: "No disponible por razones legales",
 		Err:     errorData(e),
 	}
 }
@@ -291,7 +291,7 @@ func UnavailableForLegalReasons(e any) *HttpError {
 func Internal(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusInternalServerError,
-		Message: "Internal server error",
+		Message: "Algo salió mal de nuestro lado",
 		Err:     errorData(e),
 	}
 }
@@ -299,7 +299,7 @@ func Internal(e any) *HttpError {
 func Panic(e any, stack string) *HttpError {
 	return &HttpError{
 		Status:  http.StatusInternalServerError,
-		Message: "Panic",
+		Message: "Ups, algo salió muy mal",
 		Err:     map[string]any{"error": errorData(e), "stack": stack},
 	}
 }
@@ -307,7 +307,7 @@ func Panic(e any, stack string) *HttpError {
 func NotImplemented(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusNotImplemented,
-		Message: "Not implemented",
+		Message: "Esta función aún no está disponible",
 		Err:     errorData(e),
 	}
 }
@@ -315,7 +315,7 @@ func NotImplemented(e any) *HttpError {
 func BadGateway(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusBadGateway,
-		Message: "Bad gateway",
+		Message: "Hubo un problema con nuestros servidores",
 		Err:     errorData(e),
 	}
 }
@@ -323,7 +323,7 @@ func BadGateway(e any) *HttpError {
 func ServiceUnavailable(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusServiceUnavailable,
-		Message: "Service unavailable",
+		Message: "El servicio no está disponible en este momento",
 		Err:     errorData(e),
 	}
 }
@@ -331,7 +331,7 @@ func ServiceUnavailable(e any) *HttpError {
 func GatewayTimeout(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusGatewayTimeout,
-		Message: "Gateway timeout",
+		Message: "El servidor tardó demasiado en responder",
 		Err:     errorData(e),
 	}
 }
@@ -339,7 +339,7 @@ func GatewayTimeout(e any) *HttpError {
 func HTTPVersionNotSupported(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusHTTPVersionNotSupported,
-		Message: "HTTP version not supported",
+		Message: "La versión de tu navegador no es compatible",
 		Err:     errorData(e),
 	}
 }
@@ -347,7 +347,7 @@ func HTTPVersionNotSupported(e any) *HttpError {
 func VariantAlsoNegotiates(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusVariantAlsoNegotiates,
-		Message: "Variant also negotiates",
+		Message: "Hubo un error en la negociación del servidor",
 		Err:     errorData(e),
 	}
 }
@@ -355,7 +355,7 @@ func VariantAlsoNegotiates(e any) *HttpError {
 func InsufficientStorage(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusInsufficientStorage,
-		Message: "Insufficient storage",
+		Message: "No hay suficiente espacio disponible",
 		Err:     errorData(e),
 	}
 }
@@ -363,7 +363,7 @@ func InsufficientStorage(e any) *HttpError {
 func LoopDetected(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusLoopDetected,
-		Message: "Loop detected",
+		Message: "Se detectó un bucle infinito en el servidor",
 		Err:     errorData(e),
 	}
 }
@@ -371,7 +371,7 @@ func LoopDetected(e any) *HttpError {
 func NotExtended(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusNotExtended,
-		Message: "Not extended",
+		Message: "Faltan extensiones necesarias en el servidor",
 		Err:     errorData(e),
 	}
 }
@@ -379,7 +379,7 @@ func NotExtended(e any) *HttpError {
 func NetworkAuthenticationRequired(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusNetworkAuthenticationRequired,
-		Message: "Network authentication required",
+		Message: "Necesitas autenticarte en la red",
 		Err:     errorData(e),
 	}
 }
@@ -390,8 +390,7 @@ func errorData(e any) any {
 	}
 
 	v := reflect.ValueOf(e)
-
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
 			return nil
 		}

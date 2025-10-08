@@ -59,7 +59,7 @@ func (e *ValidationError) Errors(l string) *HttpError {
 		}
 	}
 	if e.IsEntity {
-		return UnprocessableEntity(result)
+		return &HttpError{Status: UNPROCESSABLE_ENTITY, Message: "No pudimos procesar la información que enviaste", Err: result}
 	}
-	return BadRequest(result)
+	return &HttpError{Status: BAD_REQUEST, Message: "Algo no está bien con tu solicitud", Err: result}
 }

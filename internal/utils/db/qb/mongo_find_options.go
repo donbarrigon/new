@@ -9,9 +9,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// FindOptions toma los parámetros de búsqueda del contexto (ctx) y los convierte en un conjunto de opciones de búsqueda (FindOptions) de MongoDB.
-// @param page: número de página para la paginación (predeterminado: 0)
+// PaginateFindOptions toma los parámetros de búsqueda del handler.Contex (c) y
+// los convierte en un conjunto de opciones de búsqueda (FindOptions) de MongoDB.
+// @param page: número de página para la paginación (predeterminado: 1)
 // @param per_page: número de elementos por página (predeterminado: 15, máximo: 1000)
+//
 // @param sort: orden de los resultados.
 //
 //	Formato: sort=campo1,-campo2,+campo3 o sort=campo1&sort=-campo2&sort=+campo3
@@ -24,9 +26,9 @@ import (
 //	projection=campo1,campo2,campo3 (solo incluye estos campos en el resultado)
 //	projection=campo1&projection=campo2&projection=campo3 (incluye estos tres campos en el resultado)
 //	projection=id excluye '_id' (el campo por defecto siempre se incluye a menos que se indique lo contrario).
-func FindOptions(ctx *handler.Context) *options.FindOptionsBuilder {
+func PaginateFindOptions(c *handler.Context) *options.FindOptionsBuilder {
 	findOptions := options.Find()
-	urlValues := ctx.Request.URL.Query()
+	urlValues := c.Request.URL.Query()
 
 	limit, er := strconv.ParseInt(urlValues.Get("per_page"), 10, 64)
 	if er != nil {
@@ -44,8 +46,8 @@ func FindOptions(ctx *handler.Context) *options.FindOptionsBuilder {
 
 	sort := bson.D{}
 	for _, field := range urlValues["sort"] {
-		fields := strings.Split(field, ",")
-		for _, f := range fields {
+		fields := strings.SplitSeq(field, ",")
+		for f := range fields {
 			if strings.HasPrefix(field, "-") {
 				sort = append(sort, bson.E{Key: strings.TrimPrefix(f, "-"), Value: -1})
 			} else {
@@ -57,15 +59,14 @@ func FindOptions(ctx *handler.Context) *options.FindOptionsBuilder {
 
 	projection := bson.D{}
 	for _, field := range urlValues["projection"] {
-		fields := strings.Split(field, ",")
-		for _, f := range fields {
+		fields := strings.SplitSeq(field, ",")
+		for f := range fields {
 			if f == "id" {
 				projection = append(projection, bson.E{Key: "_id", Value: 0})
 			} else {
 				projection = append(projection, bson.E{Key: f, Value: 1})
 			}
 		}
-
 	}
 	findOptions.SetProjection(projection)
 

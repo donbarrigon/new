@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"donbarrigon/new/internal/model"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
 	"net/http"
@@ -12,19 +13,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type UserSession interface {
-	GetID() bson.ObjectID
-	GetPermisions() map[string]bool
-	GetRoles() map[string][]string
-}
-
 type Session struct {
-	// ID          bson.ObjectID
+	ID          bson.ObjectID
 	Token       string
-	UserID      bson.ObjectID
-	Data        any
-	Roles       map[string][]string
-	Permissions map[string]bool
+	User        *model.User
 	IP          string
 	Agent       string
 	Fingerprint string
@@ -110,12 +102,12 @@ func (s *Session) ClearCookie() {
 		Secure:   config.ServerHttpsEnabled,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
-		Expires:  time.Unix(0, 0), // <- opcional: fecha expirada
+		Expires:  time.Unix(0, 0),
 	})
 }
 
 func (s *Session) Can(permission string) bool {
-	return s.Permissions[permission]
+	return s.User.Permissions[permission]
 }
 
 func (s *Session) saveFileSession() err.Error {
@@ -134,7 +126,7 @@ func (s *Session) saveFileSession() err.Error {
 }
 
 func (s *Session) saveFileUserIndex(data map[string]time.Time) err.Error {
-	path, filename := fileUserIndex(s.UserID.Hex())
+	path, filename := fileUserIndex(s.User.ID.Hex())
 	encoded, e := msgpack.Marshal(data)
 	if e != nil {
 		return err.New(err.INTERNAL, "No se pudo codificar el indice de sessiones", e)
@@ -178,7 +170,7 @@ func (s *Session) removeFileUserIndex() err.Error {
 }
 
 func (s *Session) deleteFileUserIndex() err.Error {
-	path, fileName := fileUserIndex(s.UserID.Hex())
+	path, fileName := fileUserIndex(s.User.ID.Hex())
 	if e := os.Remove(path + fileName); e != nil {
 		return err.New(err.INTERNAL, "No se eliminó el indice de la sesion", e)
 	}
@@ -187,7 +179,7 @@ func (s *Session) deleteFileUserIndex() err.Error {
 
 func (s *Session) readFileUserIndex() (map[string]time.Time, err.Error) {
 	data := map[string]time.Time{}
-	path, filename := fileUserIndex(s.UserID.Hex())
+	path, filename := fileUserIndex(s.User.ID.Hex())
 	info, e := os.Stat(path + filename)
 	if e == nil && !info.IsDir() {
 		encoded, e := os.ReadFile(path + filename)
@@ -202,7 +194,7 @@ func (s *Session) readFileUserIndex() (map[string]time.Time, err.Error) {
 }
 
 func (s *Session) muUser() *sync.Mutex {
-	mu, _ := muSession.LoadOrStore(s.UserID.Hex(), &sync.Mutex{})
+	mu, _ := muSession.LoadOrStore(s.User.ID.Hex(), &sync.Mutex{})
 	return mu.(*sync.Mutex)
 }
 

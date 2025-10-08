@@ -16,6 +16,10 @@ type Model interface {
 	SetID(id bson.ObjectID)
 	BeforeCreate() err.Error
 	BeforeUpdate() err.Error
+	BeforeDelete() err.Error
+	AfterCreate() err.Error
+	AfterUpdate() err.Error
+	AfterDelete() err.Error
 
 	Create() err.Error // esto lo agrega el odm
 	Delete() err.Error // esto lo agrega el odm
@@ -27,8 +31,12 @@ type Odm struct {
 	Model Model `bson:"-" json:"-"`
 }
 
-var DBClient *mongo.Client
-var DB *mongo.Database
+func (o *Odm) BeforeCreate() err.Error { return nil }
+func (o *Odm) BeforeUpdate() err.Error { return nil }
+func (o *Odm) BeforeDelete() err.Error { return nil }
+func (o *Odm) AfterCreate() err.Error  { return nil }
+func (o *Odm) AfterUpdate() err.Error  { return nil }
+func (o *Odm) AfterDelete() err.Error  { return nil }
 
 func (o *Odm) FindByHexID(id string) err.Error {
 
@@ -78,7 +86,7 @@ func (o *Odm) Find(result any, filter bson.D, opts ...options.Lister[options.Fin
 	return nil
 }
 
-func (o *Odm) FindBy(result any, field string, value any, opts ...options.Lister[options.FindOptions]) err.Error {
+func (o *Odm) FindByField(result any, field string, value any, opts ...options.Lister[options.FindOptions]) err.Error {
 	filter := bson.D{bson.E{Key: field, Value: value}}
 	ctx := context.TODO()
 	cursor, e := DB.Collection(o.Model.CollectionName()).Find(ctx, filter, opts...)
@@ -115,7 +123,7 @@ func (o *Odm) AggregateOne(pipeline mongo.Pipeline) err.Error {
 			return err.Mongo(e)
 		}
 	} else {
-		return err.NotFound("document not found")
+		return err.New(err.NOT_FOUND, "El documento no existe", "!cursor.Next(ctx)")
 	}
 	return nil
 }
@@ -129,23 +137,23 @@ func (o *Odm) Create() err.Error {
 		return err.Mongo(e)
 	}
 	o.Model.SetID(result.InsertedID.(bson.ObjectID))
-
-	return nil
+	return o.Model.AfterCreate()
 }
 
 func (o *Odm) CreateBy(validator any) err.Error {
-	if _, _, e := Fill(o.Model, validator); e != nil {
+	if e := Fill(o.Model, validator); e != nil {
 		return e
 	}
 	return o.Create()
 }
 
+// usela solo si tienes pereza.
 func (o *Odm) CreateMany(data any) err.Error {
 
 	v := reflect.ValueOf(data)
 
 	if v.Kind() != reflect.Slice {
-		return err.Internal("Create many required a slice")
+		return err.New(err.INTERNAL, "No se puede guardar la coleccion de datos", "CreateMany solo acepta slices de Model")
 	}
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
@@ -158,9 +166,16 @@ func (o *Odm) CreateMany(data any) err.Error {
 	if e != nil {
 		return err.Mongo(e)
 	}
+	he := []err.Error{}
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
 		elem.(Model).SetID(result.InsertedIDs[i].(bson.ObjectID))
+		if e := elem.(Model).AfterCreate(); e != nil {
+			he = append(he, e)
+		}
+	}
+	if len(he) > 0 {
+		return err.New(err.INTERNAL, "Algo salio mal al guardar la coleccion de datos", he)
 	}
 	return nil
 }
@@ -177,17 +192,17 @@ func (o *Odm) Update() err.Error {
 		return err.Mongo(e)
 	}
 	if result.MatchedCount == 0 {
-		return err.NotFound("document not found for update")
+		return err.New(err.NOT_FOUND, "El documento a modificar no existe", "!result.MatchedCount == 0")
 	}
 
 	if result.ModifiedCount == 0 {
-		return err.Conflict("no changes were applied to the document")
+		return err.New(err.CONFLICT, "No se aplicaron cambios al guardar el documento", "!result.ModifiedCount == 0")
 	}
 	return nil
 }
 
 func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, err.Error) {
-	original, dirty, e := Fill(o.Model, validator)
+	original, dirty, e := Filld(o.Model, validator)
 	if e != nil {
 		return original, dirty, e
 	}
@@ -204,7 +219,7 @@ func (o *Odm) Delete() err.Error {
 		return err.Mongo(e)
 	}
 	if result.DeletedCount == 0 {
-		return err.Conflict("no changes were applied to the document")
+		return err.New(err.CONFLICT, "No se elimino el documento", "!result.DeletedCount == 0")
 	}
 	return nil
 }

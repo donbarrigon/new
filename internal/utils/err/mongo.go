@@ -12,12 +12,12 @@ import (
 func HexID(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusBadRequest,
-		Message: "Invalid hex id",
-		Err:     e,
+		Message: "El identificador no es válido",
+		Err:     errorData(e),
 	}
 }
 
-// Mongo maps MongoDB driver errors to HttpError
+// Convierte los errores del driver de mongo a errores HTTP
 func Mongo(e error) *HttpError {
 	if e == nil {
 		return nil
@@ -25,22 +25,22 @@ func Mongo(e error) *HttpError {
 
 	// No document found
 	if e == mongo.ErrNoDocuments {
-		return NotFound("document not found")
+		return &HttpError{Status: NOT_FOUND, Message: "No encontramos lo que buscas", Err: errorData(e)}
 	}
 
 	// Client disconnected
 	if e == mongo.ErrClientDisconnected {
-		return ServiceUnavailable("database client disconnected")
+		return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "Se perdió la conexión con la base de datos", Err: errorData(e)}
 	}
 
 	// Deadline exceeded (timeout)
 	if errors.Is(e, context.DeadlineExceeded) {
-		return RequestTimeout("operation timed out")
+		return &HttpError{Status: REQUEST_TIMEOUT, Message: "La operación tardó demasiado", Err: errorData(e)}
 	}
 
 	// Context canceled
 	if errors.Is(e, context.Canceled) {
-		return BadRequest("operation canceled")
+		return &HttpError{Status: BAD_REQUEST, Message: "La operación fue cancelada", Err: errorData(e)}
 	}
 
 	// Handle WriteException for more detailed write errors
@@ -69,7 +69,7 @@ func Mongo(e error) *HttpError {
 
 	// Duplicate key (legacy check as fallback)
 	if mongo.IsDuplicateKeyError(e) {
-		return Conflict("duplicate key error")
+		return &HttpError{Status: CONFLICT, Message: "Este registro ya existe", Err: errorData(e)}
 	}
 
 	// Check for network/connection errors by error message
@@ -78,23 +78,23 @@ func Mongo(e error) *HttpError {
 	case strings.Contains(errorMsg, "connection refused"),
 		strings.Contains(errorMsg, "no reachable servers"),
 		strings.Contains(errorMsg, "server selection timeout"):
-		return ServiceUnavailable("database connection failed")
+		return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "No pudimos conectar con la base de datos", Err: errorData(e)}
 
 	case strings.Contains(errorMsg, "authentication failed"):
-		return Unauthorized("database authentication failed")
+		return &HttpError{Status: UNAUTHORIZED, Message: "Fallo la autenticación con la base de datos", Err: errorData(e)}
 
 	case strings.Contains(errorMsg, "not authorized"):
-		return Forbidden("insufficient database privileges")
+		return &HttpError{Status: FORBIDDEN, Message: "No tienes permisos suficientes", Err: errorData(e)}
 
 	case strings.Contains(errorMsg, "invalid namespace"):
-		return BadRequest("invalid database or collection name")
+		return &HttpError{Status: BAD_REQUEST, Message: "El nombre de la colección no es válido", Err: errorData(e)}
 
 	case strings.Contains(errorMsg, "exceeds maximum"):
-		return BadRequest("request exceeds maximum allowed size")
+		return &HttpError{Status: BAD_REQUEST, Message: "Los datos son demasiado grandes", Err: errorData(e)}
 	}
 
 	// Default case → Internal Server Error
-	return Internal(e.Error())
+	return Internal(e)
 }
 
 // handleWriteException processes MongoDB write exceptions
@@ -102,19 +102,19 @@ func handleWriteException(we mongo.WriteException) *HttpError {
 	for _, writeError := range we.WriteErrors {
 		switch writeError.Code {
 		case 11000, 11001: // Duplicate key errors
-			return Conflict("duplicate key violation")
+			return &HttpError{Status: CONFLICT, Message: "Este registro ya existe", Err: errorData(we)}
 		case 2: // BadValue
-			return BadRequest("invalid field value")
+			return &HttpError{Status: BAD_REQUEST, Message: "El valor de un campo no es válido", Err: errorData(we)}
 		case 9: // FailedToParse
-			return BadRequest("failed to parse document")
+			return &HttpError{Status: BAD_REQUEST, Message: "No pudimos procesar los datos", Err: errorData(we)}
 		case 14: // TypeMismatch
-			return BadRequest("field type mismatch")
+			return &HttpError{Status: BAD_REQUEST, Message: "El tipo de dato no coincide", Err: errorData(we)}
 		case 16755: // Location error
-			return BadRequest("invalid geospatial data")
+			return &HttpError{Status: BAD_REQUEST, Message: "La ubicación geográfica no es válida", Err: errorData(we)}
 		case 17280: // KeyTooLong
-			return BadRequest("key too long")
+			return &HttpError{Status: BAD_REQUEST, Message: "El identificador es demasiado largo", Err: errorData(we)}
 		case 10334: // BSONObjectTooLarge
-			return BadRequest("document too large")
+			return &HttpError{Status: BAD_REQUEST, Message: "El documento es demasiado grande", Err: errorData(we)}
 		}
 	}
 
@@ -122,13 +122,13 @@ func handleWriteException(we mongo.WriteException) *HttpError {
 	if we.WriteConcernError != nil {
 		switch we.WriteConcernError.Code {
 		case 64: // WriteConcernFailed
-			return ServiceUnavailable("write concern failed")
+			return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "No se pudo confirmar la escritura", Err: errorData(we)}
 		case 79: // UnknownReplWriteConcern
-			return BadRequest("unknown write concern")
+			return &HttpError{Status: BAD_REQUEST, Message: "La configuración de escritura no es válida", Err: errorData(we)}
 		}
 	}
 
-	return Internal("write operation failed: " + we.Error())
+	return &HttpError{Status: INTERNAL, Message: "No pudimos guardar los datos", Err: errorData(we)}
 }
 
 // handleBulkWriteException processes bulk write exceptions
@@ -136,56 +136,56 @@ func handleBulkWriteException(bwe mongo.BulkWriteException) *HttpError {
 	// Check for duplicate key errors in bulk operations
 	for _, writeError := range bwe.WriteErrors {
 		if writeError.Code == 11000 || writeError.Code == 11001 {
-			return Conflict("bulk operation contains duplicate keys")
+			return &HttpError{Status: CONFLICT, Message: "Algunos registros ya existen", Err: errorData(bwe)}
 		}
 	}
 
 	// Check write concern errors
 	if bwe.WriteConcernError != nil {
-		return ServiceUnavailable("bulk write concern failed")
+		return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "No se pudieron confirmar todos los cambios", Err: errorData(bwe)}
 	}
 
-	return BadRequest("bulk write operation failed")
+	return &HttpError{Status: BAD_REQUEST, Message: "No se pudieron guardar todos los registros", Err: errorData(bwe)}
 }
 
 // handleCommandError processes MongoDB command errors
 func handleCommandError(ce mongo.CommandError) *HttpError {
 	switch ce.Code {
 	case 2: // BadValue
-		return BadRequest("invalid command parameter")
+		return &HttpError{Status: BAD_REQUEST, Message: "Uno de los parámetros no es válido", Err: errorData(ce)}
 	case 9: // FailedToParse
-		return BadRequest("failed to parse command")
+		return &HttpError{Status: BAD_REQUEST, Message: "No pudimos entender la solicitud", Err: errorData(ce)}
 	case 13: // Unauthorized
-		return Forbidden("insufficient privileges for command")
+		return &HttpError{Status: FORBIDDEN, Message: "No tienes permisos para hacer esto", Err: errorData(ce)}
 	case 18: // AuthenticationFailed
-		return Unauthorized("authentication failed")
+		return &HttpError{Status: UNAUTHORIZED, Message: "La autenticación falló", Err: errorData(ce)}
 	case 26: // NamespaceNotFound
-		return NotFound("database or collection not found")
+		return &HttpError{Status: NOT_FOUND, Message: "La colección no existe", Err: errorData(ce)}
 	case 59: // CommandNotFound
-		return BadRequest("unknown command")
+		return &HttpError{Status: BAD_REQUEST, Message: "La operación no es válida", Err: errorData(ce)}
 	case 61: // ShardKeyNotFound
-		return BadRequest("shard key not found")
+		return &HttpError{Status: BAD_REQUEST, Message: "Falta la clave de distribución", Err: errorData(ce)}
 	case 72: // InvalidOptions
-		return BadRequest("invalid command options")
+		return &HttpError{Status: BAD_REQUEST, Message: "Las opciones no son válidas", Err: errorData(ce)}
 	case 96: // OperationFailed
-		return Internal("database operation failed")
+		return &HttpError{Status: INTERNAL, Message: "La operación falló", Err: errorData(ce)}
 	case 11600: // InterruptedAtShutdown
-		return ServiceUnavailable("database shutting down")
+		return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "El servidor se está reiniciando", Err: errorData(ce)}
 	case 11601: // Interrupted
-		return ServiceUnavailable("operation interrupted")
+		return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "La operación fue interrumpida", Err: errorData(ce)}
 	case 13435: // ShardKeyTooBig
-		return BadRequest("shard key too large")
+		return &HttpError{Status: BAD_REQUEST, Message: "La clave de distribución es demasiado grande", Err: errorData(ce)}
 	case 16550: // DocumentValidationFailure
-		return BadRequest("document validation failed")
+		return &HttpError{Status: BAD_REQUEST, Message: "Los datos no cumplen con las reglas de validación", Err: errorData(ce)}
 	case 50: // MaxTimeMSExpired
-		return RequestTimeout("operation exceeded time limit")
+		return &HttpError{Status: REQUEST_TIMEOUT, Message: "La operación tomó demasiado tiempo", Err: errorData(ce)}
 	}
 
-	return Internal("command failed: " + ce.Error())
+	return &HttpError{Status: INTERNAL, Message: "La operación falló", Err: errorData(ce)}
 }
 
 // handleServerError processes general MongoDB server errors
 func handleServerError(se mongo.ServerError) *HttpError {
 	// Server errors are typically infrastructure issues
-	return ServiceUnavailable("database server error: " + se.Error())
+	return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "Hay un problema con el servidor de la base de datos", Err: errorData(se)}
 }
