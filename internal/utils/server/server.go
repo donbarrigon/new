@@ -58,12 +58,12 @@ func Start(h *handler.Handler) {
 	time.Sleep(100 * time.Millisecond) // para que salga el mensaje de corriendo.
 
 	if config.ServerHttpsEnabled {
-		if err := server.ListenAndServeTLS("", ""); err != nil && err != http.ErrServerClosed {
-			logs.Error("💥 Could not start server tls: %s", err.Error())
+		if e := server.ListenAndServeTLS("", ""); e != nil && e != http.ErrServerClosed {
+			logs.Error("💥 Could not start server tls: %s", e.Error())
 		}
 	} else {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logs.Error("💥 Could not start server: %s", err.Error())
+		if e := server.ListenAndServe(); e != nil && e != http.ErrServerClosed {
+			logs.Error("💥 Could not start server: %s", e.Error())
 		}
 	}
 
@@ -93,8 +93,8 @@ func HttpServerGracefulShutdown(server *http.Server) {
 	logs.Info("⏻ Initiating controlled server shutdown...")
 
 	// se cierra la conexion con mono db
-	if err := db.CloseMongoDB(); err != nil {
-		logs.Warning("💥 Error closing connection to MongoDB %s", err.Error())
+	if e := db.CloseMongoDB(); e != nil {
+		logs.Warning("💥 Error closing connection to MongoDB %s", e.Error())
 	} else {
 		logs.Info("🔌 Connection to MongoDB successfully closed")
 	}
@@ -104,8 +104,8 @@ func HttpServerGracefulShutdown(server *http.Server) {
 	defer cancel()
 
 	//se cierra el servidor HTTP para que no acepte nuevas conexiones
-	if err := server.Shutdown(ctx); err != nil {
-		logs.Warning("⏻ Server forced to close: %s", err.Error())
+	if e := server.Shutdown(ctx); e != nil {
+		logs.Warning("⏻ Server forced to close: %s", e.Error())
 	} else {
 		logs.Info("⏻ HTTP server stopped successfully")
 	}

@@ -2,16 +2,10 @@ package err
 
 import (
 	"donbarrigon/new/internal/utils/config"
-	"donbarrigon/new/internal/utils/lang"
 	"fmt"
 	"net/http"
 	"reflect"
 )
-
-type Error interface {
-	error
-	Errors(l string) *HttpError
-}
 
 type HttpError struct {
 	Status  int    `json:"-"`
@@ -28,25 +22,11 @@ func New(status int, message string, e any) *HttpError {
 }
 
 // ================================
-// Funciones para la interfaz de Errror
+// Funciones para la interfaz de error
 // ================================
 
 func (e *HttpError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Message, e.Err)
-}
-
-func (e *HttpError) Errors(l string) *HttpError {
-	e.Message = lang.T(l, e.Message, nil)
-	if config.AppDebug {
-		e.Err = nil
-	}
-	if e.Err == nil {
-		return e
-	}
-	if s, ok := e.Err.(string); ok {
-		e.Err = lang.T(l, s, nil)
-	}
-	return e
 }
 
 // ================================
@@ -386,6 +366,10 @@ func NetworkAuthenticationRequired(e any) *HttpError {
 
 func errorData(e any) any {
 	if e == nil {
+		return nil
+	}
+
+	if !config.AppDebug {
 		return nil
 	}
 

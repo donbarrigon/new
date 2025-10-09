@@ -10,15 +10,15 @@ import (
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Session struct {
-	ID          bson.ObjectID
+	//ID          bson.ObjectID
 	Token       string
 	User        *model.User
 	IP          string
 	Agent       string
+	Lang        string
 	Fingerprint string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -33,8 +33,8 @@ func (s *Session) IsExpired() bool {
 	return time.Now().After(s.ExpiresAt)
 }
 
-func (s *Session) Save() err.Error {
-	echan := make(chan err.Error, 2)
+func (s *Session) Save() error {
+	echan := make(chan error, 2)
 	go func() {
 		muToken := s.muToken()
 		muToken.Lock()
@@ -57,7 +57,7 @@ func (s *Session) Save() err.Error {
 	return nil
 }
 
-func (s *Session) Refresh() err.Error {
+func (s *Session) Refresh() error {
 	muToken := s.muToken()
 	muToken.Lock()
 	defer muToken.Unlock()
@@ -66,7 +66,7 @@ func (s *Session) Refresh() err.Error {
 	return s.saveFileSession()
 }
 
-func (s *Session) Destroy() err.Error {
+func (s *Session) Destroy() error {
 	muToken := s.muToken()
 	muToken.Lock()
 	defer muToken.Unlock()
@@ -110,7 +110,7 @@ func (s *Session) Can(permission string) bool {
 	return s.User.Permissions[permission]
 }
 
-func (s *Session) saveFileSession() err.Error {
+func (s *Session) saveFileSession() error {
 	path, filename := fileSession(s.Token)
 	encoded, e := msgpack.Marshal(s)
 	if e != nil {
@@ -125,7 +125,7 @@ func (s *Session) saveFileSession() err.Error {
 	return nil
 }
 
-func (s *Session) saveFileUserIndex(data map[string]time.Time) err.Error {
+func (s *Session) saveFileUserIndex(data map[string]time.Time) error {
 	path, filename := fileUserIndex(s.User.ID.Hex())
 	encoded, e := msgpack.Marshal(data)
 	if e != nil {
@@ -140,7 +140,7 @@ func (s *Session) saveFileUserIndex(data map[string]time.Time) err.Error {
 	return nil
 }
 
-func (s *Session) addFileUserIndex() err.Error {
+func (s *Session) addFileUserIndex() error {
 	data, he := s.readFileUserIndex()
 	if he != nil {
 		return he
@@ -149,7 +149,7 @@ func (s *Session) addFileUserIndex() err.Error {
 	return s.saveFileUserIndex(data)
 }
 
-func (s *Session) deleteFileSession() err.Error {
+func (s *Session) deleteFileSession() error {
 	path, fileName := fileSession(s.Token)
 	if e := os.Remove(path + fileName); e != nil {
 		return err.New(err.INTERNAL, "No se cerró la sesion", e)
@@ -157,7 +157,7 @@ func (s *Session) deleteFileSession() err.Error {
 	return nil
 }
 
-func (s *Session) removeFileUserIndex() err.Error {
+func (s *Session) removeFileUserIndex() error {
 	data, he := s.readFileUserIndex()
 	if he != nil {
 		return he
@@ -169,7 +169,7 @@ func (s *Session) removeFileUserIndex() err.Error {
 	return s.saveFileUserIndex(data)
 }
 
-func (s *Session) deleteFileUserIndex() err.Error {
+func (s *Session) deleteFileUserIndex() error {
 	path, fileName := fileUserIndex(s.User.ID.Hex())
 	if e := os.Remove(path + fileName); e != nil {
 		return err.New(err.INTERNAL, "No se eliminó el indice de la sesion", e)
@@ -177,7 +177,7 @@ func (s *Session) deleteFileUserIndex() err.Error {
 	return nil
 }
 
-func (s *Session) readFileUserIndex() (map[string]time.Time, err.Error) {
+func (s *Session) readFileUserIndex() (map[string]time.Time, error) {
 	data := map[string]time.Time{}
 	path, filename := fileUserIndex(s.User.ID.Hex())
 	info, e := os.Stat(path + filename)

@@ -14,15 +14,15 @@ type Model interface {
 	CollectionName() string
 	GetID() bson.ObjectID
 	SetID(id bson.ObjectID)
-	BeforeCreate() err.Error
-	BeforeUpdate() err.Error
-	BeforeDelete() err.Error
-	AfterCreate() err.Error
-	AfterUpdate() err.Error
-	AfterDelete() err.Error
+	BeforeCreate() error
+	BeforeUpdate() error
+	BeforeDelete() error
+	AfterCreate() error
+	AfterUpdate() error
+	AfterDelete() error
 
-	Create() err.Error // esto lo agrega el odm
-	Delete() err.Error // esto lo agrega el odm
+	Create() error // esto lo agrega el odm
+	Delete() error // esto lo agrega el odm
 }
 
 type Collection []Model
@@ -31,14 +31,14 @@ type Odm struct {
 	Model Model `bson:"-" json:"-"`
 }
 
-func (o *Odm) BeforeCreate() err.Error { return nil }
-func (o *Odm) BeforeUpdate() err.Error { return nil }
-func (o *Odm) BeforeDelete() err.Error { return nil }
-func (o *Odm) AfterCreate() err.Error  { return nil }
-func (o *Odm) AfterUpdate() err.Error  { return nil }
-func (o *Odm) AfterDelete() err.Error  { return nil }
+func (o *Odm) BeforeCreate() error { return nil }
+func (o *Odm) BeforeUpdate() error { return nil }
+func (o *Odm) BeforeDelete() error { return nil }
+func (o *Odm) AfterCreate() error  { return nil }
+func (o *Odm) AfterUpdate() error  { return nil }
+func (o *Odm) AfterDelete() error  { return nil }
 
-func (o *Odm) FindByHexID(id string) err.Error {
+func (o *Odm) FindByHexID(id string) error {
 
 	objectId, e := bson.ObjectIDFromHex(id)
 	if e != nil {
@@ -51,7 +51,7 @@ func (o *Odm) FindByHexID(id string) err.Error {
 	return nil
 }
 
-func (o *Odm) FindByID(id bson.ObjectID) err.Error {
+func (o *Odm) FindByID(id bson.ObjectID) error {
 	filter := bson.D{bson.E{Key: "_id", Value: id}}
 	if e := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); e != nil {
 		return err.Mongo(e)
@@ -59,7 +59,7 @@ func (o *Odm) FindByID(id bson.ObjectID) err.Error {
 	return nil
 }
 
-func (o *Odm) First(field string, value any) err.Error {
+func (o *Odm) First(field string, value any) error {
 	filter := bson.D{bson.E{Key: field, Value: value}}
 	if e := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter).Decode(o.Model); e != nil {
 		return err.Mongo(e)
@@ -67,14 +67,14 @@ func (o *Odm) First(field string, value any) err.Error {
 	return nil
 }
 
-func (o *Odm) FindOne(filter bson.D, opts ...options.Lister[options.FindOneOptions]) err.Error {
+func (o *Odm) FindOne(filter bson.D, opts ...options.Lister[options.FindOneOptions]) error {
 	if e := DB.Collection(o.Model.CollectionName()).FindOne(context.TODO(), filter, opts...).Decode(o.Model); e != nil {
 		return err.Mongo(e)
 	}
 	return nil
 }
 
-func (o *Odm) Find(result any, filter bson.D, opts ...options.Lister[options.FindOptions]) err.Error {
+func (o *Odm) Find(result any, filter bson.D, opts ...options.Lister[options.FindOptions]) error {
 	ctx := context.TODO()
 	cursor, e := DB.Collection(o.Model.CollectionName()).Find(ctx, filter, opts...)
 	if e != nil {
@@ -86,7 +86,7 @@ func (o *Odm) Find(result any, filter bson.D, opts ...options.Lister[options.Fin
 	return nil
 }
 
-func (o *Odm) FindByField(result any, field string, value any, opts ...options.Lister[options.FindOptions]) err.Error {
+func (o *Odm) FindByField(result any, field string, value any, opts ...options.Lister[options.FindOptions]) error {
 	filter := bson.D{bson.E{Key: field, Value: value}}
 	ctx := context.TODO()
 	cursor, e := DB.Collection(o.Model.CollectionName()).Find(ctx, filter, opts...)
@@ -99,7 +99,7 @@ func (o *Odm) FindByField(result any, field string, value any, opts ...options.L
 	return nil
 }
 
-func (o *Odm) Aggregate(result any, pipeline mongo.Pipeline) err.Error {
+func (o *Odm) Aggregate(result any, pipeline mongo.Pipeline) error {
 	ctx := context.TODO()
 	cursor, e := DB.Collection(o.Model.CollectionName()).Aggregate(ctx, pipeline)
 	if e != nil {
@@ -111,7 +111,7 @@ func (o *Odm) Aggregate(result any, pipeline mongo.Pipeline) err.Error {
 	return nil
 }
 
-func (o *Odm) AggregateOne(pipeline mongo.Pipeline) err.Error {
+func (o *Odm) AggregateOne(pipeline mongo.Pipeline) error {
 	ctx := context.TODO()
 	cursor, e := DB.Collection(o.Model.CollectionName()).Aggregate(ctx, pipeline)
 	if e != nil {
@@ -128,7 +128,7 @@ func (o *Odm) AggregateOne(pipeline mongo.Pipeline) err.Error {
 	return nil
 }
 
-func (o *Odm) Create() err.Error {
+func (o *Odm) Create() error {
 	if e := o.Model.BeforeCreate(); e != nil {
 		return e
 	}
@@ -140,7 +140,7 @@ func (o *Odm) Create() err.Error {
 	return o.Model.AfterCreate()
 }
 
-func (o *Odm) CreateBy(validator any) err.Error {
+func (o *Odm) CreateBy(validator any) error {
 	if e := Fill(o.Model, validator); e != nil {
 		return e
 	}
@@ -148,7 +148,7 @@ func (o *Odm) CreateBy(validator any) err.Error {
 }
 
 // usela solo si tienes pereza.
-func (o *Odm) CreateMany(data any) err.Error {
+func (o *Odm) CreateMany(data any) error {
 
 	v := reflect.ValueOf(data)
 
@@ -166,7 +166,7 @@ func (o *Odm) CreateMany(data any) err.Error {
 	if e != nil {
 		return err.Mongo(e)
 	}
-	he := []err.Error{}
+	he := []error{}
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
 		elem.(Model).SetID(result.InsertedIDs[i].(bson.ObjectID))
@@ -180,7 +180,7 @@ func (o *Odm) CreateMany(data any) err.Error {
 	return nil
 }
 
-func (o *Odm) Update() err.Error {
+func (o *Odm) Update() error {
 	if e := o.Model.BeforeUpdate(); e != nil {
 		return e
 	}
@@ -201,7 +201,7 @@ func (o *Odm) Update() err.Error {
 	return nil
 }
 
-func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, err.Error) {
+func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, error) {
 	original, dirty, e := Filld(o.Model, validator)
 	if e != nil {
 		return original, dirty, e
@@ -211,7 +211,7 @@ func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, err.Error
 
 // OjO no usa el hook BeforeUpdate
 
-func (o *Odm) Delete() err.Error {
+func (o *Odm) Delete() error {
 	filter := bson.D{bson.E{Key: "_id", Value: o.Model.GetID()}}
 
 	result, e := DB.Collection(o.Model.CollectionName()).DeleteOne(context.TODO(), filter)
@@ -222,4 +222,8 @@ func (o *Odm) Delete() err.Error {
 		return err.New(err.CONFLICT, "No se elimino el documento", "!result.DeletedCount == 0")
 	}
 	return nil
+}
+
+func (o *Odm) MoveToTrash() error {
+	return o.Delete()
 }

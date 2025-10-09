@@ -8,6 +8,7 @@ import (
 	"donbarrigon/new/internal/utils/lang"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -20,19 +21,19 @@ import (
 type AuthInterface interface {
 	GetID() bson.ObjectID
 	GetUserID() bson.ObjectID
-	Can(permissionName string) err.Error
-	HasRole(roleName string) err.Error
+	Can(permissionName string) error
+	HasRole(roleName string) error
 }
 
 type Validator interface {
-	PrepareForValidation(hc *Context) err.Error
+	PrepareForValidation(c *Context) error
 }
 
 type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request
 	handler *Handler
-	Session *auth.Session
+	Auth    *auth.Session
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request, h *Handler) *Context {
@@ -43,12 +44,12 @@ func NewContext(w http.ResponseWriter, r *http.Request, h *Handler) *Context {
 	}
 }
 
-func (hc *Context) Lang() string {
-	return hc.Request.Header.Get("Accept-Language")
+func (c *Context) Lang() string {
+	return c.Request.Header.Get("Accept-Language")
 }
 
-func (hc *Context) GetBody(request any) err.Error {
-	decoder := json.NewDecoder(hc.Request.Body)
+func (c *Context) GetBody(request any) error {
+	decoder := json.NewDecoder(c.Request.Body)
 	if e := decoder.Decode(request); e != nil {
 		return err.New(
 			http.StatusBadRequest,
@@ -56,47 +57,59 @@ func (hc *Context) GetBody(request any) err.Error {
 			e.Error(),
 		)
 	}
-	defer hc.Request.Body.Close()
+	defer c.Request.Body.Close()
 	return nil
 }
 
-func (hc *Context) Get(param string, defaultValue string) string {
-	return hc.Request.URL.Query().Get(param)
+func (c *Context) Get(param string, defaultValue string) string {
+	return c.Request.URL.Query().Get(param)
 }
 
-func (hc *Context) ResponseJSON(status int, data any) {
-	hc.Writer.Header().Set("Content-Type", "application/json")
-	hc.Writer.WriteHeader(status)
+func (c *Context) ResponseJSON(status int, data any) {
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.WriteHeader(status)
 
-	if err := json.NewEncoder(hc.Writer).Encode(data); err != nil {
-		hc.Writer.WriteHeader(http.StatusInternalServerError)
-		hc.Writer.WriteHeader(500)
-		hc.Writer.Write([]byte(lang.T(hc.Lang(), `{"message": "Error", "error": "Could not encode the response"}`, nil)))
+	if err := json.NewEncoder(c.Writer).Encode(data); err != nil {
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.WriteHeader(500)
+		c.Writer.Write([]byte(lang.T(c.Lang(), `{"message": "Error", "error": "Could not encode the response"}`, nil)))
 	}
 }
 
-func (hc *Context) ResponseError(e err.Error) {
-	er := e.Errors(hc.Lang())
-	hc.ResponseJSON(er.Status, er)
+func (c *Context) ResponseError(e error) {
+	he := &err.HttpError{}
+	if errors.As(e, he) {
+		he.Message = lang.T(c.Lang(), he.Message, nil)
+		c.ResponseJSON(he.Status, he)
+		return
+	}
+	ve := &err.ValidationError{}
+	if errors.As(e, ve) {
+		he = ve.Herror(c.Lang())
+		c.ResponseJSON(he.Status, he)
+		return
+	}
+	he = err.Internal(e)
+	c.ResponseJSON(he.Status, he)
 }
 
-func (hc *Context) ResponseNotFound() {
-	hc.ResponseError(err.NotFound(lang.T(hc.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": hc.Request.Method, "path": hc.Request.URL.Path})))
+func (c *Context) ResponseNotFound() {
+	c.ResponseError(err.NotFound(lang.T(c.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": c.Request.Method, "path": c.Request.URL.Path})))
 }
 
-func (hc *Context) ResponseOk(data any) {
-	hc.ResponseJSON(http.StatusOK, data)
+func (c *Context) ResponseOk(data any) {
+	c.ResponseJSON(http.StatusOK, data)
 }
 
-func (hc *Context) ResponseCreated(data any) {
-	hc.ResponseJSON(http.StatusCreated, data)
+func (c *Context) ResponseCreated(data any) {
+	c.ResponseJSON(http.StatusCreated, data)
 }
 
-func (hc *Context) ResponseNoContent() {
-	hc.Writer.WriteHeader(http.StatusNoContent)
+func (c *Context) ResponseNoContent() {
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
-func (hc *Context) ResponseCSV(fileName string, data any, comma ...rune) {
+func (c *Context) ResponseCSV(fileName string, data any, comma ...rune) {
 	val := reflect.ValueOf(data)
 
 	if val.Kind() != reflect.Slice {
@@ -105,7 +118,7 @@ func (hc *Context) ResponseCSV(fileName string, data any, comma ...rune) {
 			Message: "Error writing CSV",
 			Err:     "Data is not a slice of structs",
 		}
-		hc.ResponseError(err)
+		c.ResponseError(err)
 		return
 	}
 
@@ -120,7 +133,7 @@ func (hc *Context) ResponseCSV(fileName string, data any, comma ...rune) {
 
 	if val.Len() == 0 {
 		err := err.NotFound("No data available")
-		hc.ResponseError(err)
+		c.ResponseError(err)
 		return
 	}
 
@@ -188,7 +201,7 @@ func (hc *Context) ResponseCSV(fileName string, data any, comma ...rune) {
 	}
 	writer.Flush()
 
-	hc.Writer.Header().Set("Content-Type", "text/csv")
-	hc.Writer.Header().Set("Content-Disposition", "attachment;filename="+fileName+".csv")
-	hc.Writer.Write(buffer.Bytes())
+	c.Writer.Header().Set("Content-Type", "text/csv")
+	c.Writer.Header().Set("Content-Disposition", "attachment;filename="+fileName+".csv")
+	c.Writer.Write(buffer.Bytes())
 }

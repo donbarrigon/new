@@ -22,7 +22,7 @@ type Validator interface {
 	PrepareForValidation(c *handler.Context) *err.ValidationError
 }
 
-func Body(c *handler.Context, validator Validator) err.Error {
+func Body(c *handler.Context, validator Validator) error {
 	if e := c.GetBody(validator); e != nil {
 		return e
 	}
@@ -35,7 +35,7 @@ func Body(c *handler.Context, validator Validator) err.Error {
 	return validate(validator, rules, e)
 }
 
-func From(validator Validator) err.Error {
+func From(validator Validator) error {
 	var e *err.ValidationError
 	e = validator.PrepareForValidation(nil)
 	if e == nil {
@@ -44,13 +44,13 @@ func From(validator Validator) err.Error {
 	return validate(validator, validator.Rules(), e)
 }
 
-func Struct(data any, rules Rules) err.Error {
+func Struct(data any, rules Rules) error {
 	var e *err.ValidationError
 	e = err.NewValidationError()
 	return validate(data, rules, e)
 }
 
-func validate(validator any, rules Rules, e *err.ValidationError) err.Error {
+func validate(validator any, rules Rules, e *err.ValidationError) error {
 	val := reflect.ValueOf(validator)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()

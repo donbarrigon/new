@@ -12,7 +12,7 @@ import (
 // Usa el tag bson como clave pero no compara valores previos.
 // Actualiza el model con los valores nuevos de request.
 // @return error
-func Fill(model any, request any) err.Error {
+func Fill(model any, request any) error {
 
 	modelValue := reflect.ValueOf(model)
 	requestValue := reflect.ValueOf(request)
@@ -77,7 +77,7 @@ func Fill(model any, request any) err.Error {
 // Usa el tag bson como clave.
 // Además actualiza el model con los valores nuevos.
 // @return original, dirty, error
-func Filld(model any, request any) (map[string]any, map[string]any, err.Error) {
+func Filld(model any, request any) (map[string]any, map[string]any, error) {
 
 	original := map[string]any{}
 	dirty := map[string]any{}

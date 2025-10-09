@@ -30,7 +30,7 @@ func (e *ValidationError) AppendM(field string, message string) {
 	e.Placeholders[field] = append(e.Placeholders[field], fm.Placeholder{"field": field})
 }
 
-func (e *ValidationError) HasErrors() Error {
+func (e *ValidationError) HasErrors() error {
 	if len(e.Messages) > 0 {
 		return e
 	}
@@ -48,7 +48,7 @@ func (e *ValidationError) Error() string {
 	}
 	return string(b)
 }
-func (e *ValidationError) Errors(l string) *HttpError {
+func (e *ValidationError) Herror(l string) *HttpError {
 	result := map[string][]string{}
 	if len(e.Messages) > 0 {
 		for key, messages := range e.Messages {

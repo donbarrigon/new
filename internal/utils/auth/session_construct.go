@@ -4,21 +4,23 @@ import (
 	"donbarrigon/new/internal/model"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
+	"net"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func SessionStart(w http.ResponseWriter, r *http.Request, user *model.User) (*Session, err.Error) {
+func SessionStart(w http.ResponseWriter, r *http.Request, user *model.User) (*Session, error) {
+	host, _, _ := net.SplitHostPort(r.RemoteAddr)
 	s := &Session{
-		ID:          bson.NewObjectID(),
+		//ID:          bson.NewObjectID(),
 		Token:       GenerateToken(),
 		User:        user,
-		IP:          r.RemoteAddr,
+		IP:          host,
 		Agent:       r.Header.Get("user-agent"),
+		Lang:        r.Header.Get("accept-language"),
 		Fingerprint: r.Header.Get("x-fingerprint"),
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -34,7 +36,7 @@ func expiresAt() time.Time {
 	return time.Now().Add(time.Duration(config.SessionLifetime) * time.Minute)
 }
 
-func GetSession(w http.ResponseWriter, r *http.Request) (*Session, err.Error) {
+func GetSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
 	cookie, e := r.Cookie("session")
 	if e != nil {
 		return nil, err.New(err.FORBIDDEN, "No ha iniciado session", e)
@@ -51,7 +53,7 @@ func GetSession(w http.ResponseWriter, r *http.Request) (*Session, err.Error) {
 	return s, nil
 }
 
-func GetSessionByToken(token string) (*Session, err.Error) {
+func GetSessionByToken(token string) (*Session, error) {
 	s := &Session{}
 	path, filename := fileSession(token)
 	info, e := os.Stat(path + filename)
@@ -67,7 +69,7 @@ func GetSessionByToken(token string) (*Session, err.Error) {
 	return s, nil
 }
 
-func GetSessionsByUserID(hex string) ([]*Session, err.Error) {
+func GetSessionsByUserID(hex string) ([]*Session, error) {
 	sessions := []*Session{}
 	tokens := map[string]time.Time{}
 	path, filename := fileUserIndex(hex)
