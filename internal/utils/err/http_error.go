@@ -2,7 +2,6 @@ package err
 
 import (
 	"donbarrigon/new/internal/utils/config"
-	"fmt"
 	"net/http"
 	"reflect"
 )
@@ -26,7 +25,7 @@ func New(status int, message string, e any) *HttpError {
 // ================================
 
 func (e *HttpError) Error() string {
-	return fmt.Sprintf("%s: %s", e.Message, e.Err)
+	return e.Message
 }
 
 // ================================

@@ -14,7 +14,7 @@ func Auth(next handler.ControllerFun) handler.ControllerFun {
 		score := 0
 		s, e := auth.GetSession(c.Writer, c.Request)
 		if e != nil {
-			c.ResponseError(e)
+			c.ResponseError(err.Unauthorized(e))
 			return
 		}
 

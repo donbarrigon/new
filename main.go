@@ -1,7 +1,7 @@
 package main
 
 import (
-	"donbarrigon/new/internal/routes"
+	"donbarrigon/new/internal/handler/routes"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/db"
 	"donbarrigon/new/internal/utils/server"

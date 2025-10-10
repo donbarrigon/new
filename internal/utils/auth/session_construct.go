@@ -1,12 +1,13 @@
 package auth
 
 import (
-	"donbarrigon/new/internal/model"
+	"donbarrigon/new/internal/database/model"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -37,19 +38,32 @@ func expiresAt() time.Time {
 }
 
 func GetSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
+	var token string
 	cookie, e := r.Cookie("session")
 	if e != nil {
-		return nil, err.New(err.FORBIDDEN, "No ha iniciado session", e)
+		authHeader := r.Header.Get("Authorization")
+		if authHeader != "" {
+			token = strings.TrimSpace(strings.TrimPrefix(authHeader, "bearer "))
+		}
+
+		if token == "" {
+			return nil, err.Unauthorized(e)
+		}
+	} else {
+		token = cookie.Value
 	}
-	s, he := GetSessionByToken(cookie.Value)
-	if he != nil {
-		return nil, he
+
+	s, e := GetSessionByToken(token)
+	if e != nil {
+		return nil, e
 	}
 	s.writer = w
 	s.request = r
 
 	s.SetCookie()
-	s.Refresh()
+	if e := s.Refresh(); e != nil {
+		return nil, e
+	}
 	return s, nil
 }
 

@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"donbarrigon/new/internal/model"
+	"donbarrigon/new/internal/database/model"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
 	"net/http"
