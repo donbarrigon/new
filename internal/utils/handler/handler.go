@@ -51,8 +51,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if ctrl, ok := h.Routes[route]; ok {
 		ctrl(c)
 		return
+	} else {
+		c.ResponseNotFound()
+		return
 	}
-	c.ResponseNotFound()
+
 }
 
 func (h *Handler) Get(path string, ctrl ControllerFun, middlewares ...MiddlewareFun) {

@@ -2,7 +2,7 @@
 // See https://github.com/valyala/quicktemplate for details.
 
 //line internal/ui/pages/home.qtpl:1
-package pages
+package view
 
 //line internal/ui/pages/home.qtpl:3
 import "time"

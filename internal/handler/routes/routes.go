@@ -1,11 +1,12 @@
 package routes
 
-import "donbarrigon/new/internal/utils/handler"
+import (
+	"donbarrigon/new/internal/handler/controller"
+	"donbarrigon/new/internal/utils/handler"
+)
 
 func AppRoutes() *handler.Handler {
 	h := handler.New()
-	h.Get("/", func(c *handler.Context) {
-		c.ResponseOk(map[string]string{"status": "ok"})
-	})
+	h.Get("/", controller.Home)
 	return h
 }

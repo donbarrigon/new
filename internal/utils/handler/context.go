@@ -77,20 +77,20 @@ func (c *Context) ResponseJSON(status int, data any) {
 }
 
 func (c *Context) ResponseError(e error) {
-	he := &err.HttpError{}
-	if errors.As(e, he) {
+	var he *err.HttpError
+	if errors.As(e, &he) {
 		he.Message = lang.T(c.Lang(), he.Message, nil)
 		c.ResponseJSON(he.Status, he)
 		return
 	}
-	ve := &err.ValidationError{}
-	if errors.As(e, ve) {
-		he = ve.Herror(c.Lang())
-		c.ResponseJSON(he.Status, he)
+	var ve *err.ValidationError
+	if errors.As(e, &ve) {
+		her := ve.Herror(c.Lang())
+		c.ResponseJSON(her.Status, her)
 		return
 	}
-	he = err.Internal(e)
-	c.ResponseJSON(he.Status, he)
+	her := err.Internal(e)
+	c.ResponseJSON(her.Status, her)
 }
 
 func (c *Context) ResponseNotFound() {

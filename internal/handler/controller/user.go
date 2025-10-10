@@ -1,4 +1,4 @@
-package handler
+package controller
 
 import "donbarrigon/new/internal/utils/handler"
 

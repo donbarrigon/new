@@ -1,18 +1,17 @@
-package view
+package controller
 
 import (
-	"donbarrigon/new/internal/ui/pages"
+	"donbarrigon/new/internal/ui/view"
 	"donbarrigon/new/internal/utils/handler"
 )
 
 func Home(c *handler.Context) {
-	// Preparar datos de ejemplo
-	data := pages.HomePageData{
+	data := view.HomePageData{
 		SiteName:   "Mi Tienda Online",
 		UserName:   "Juan",
 		IsLoggedIn: true,
 		TotalItems: 50,
-		Products: []pages.Product{
+		Products: []view.Product{
 			{
 				ID:          1,
 				Title:       "Laptop Gamer Pro",
@@ -65,5 +64,5 @@ func Home(c *handler.Context) {
 	}
 
 	c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
-	pages.WriteHomePage(c.Writer, data)
+	view.WriteHomePage(c.Writer, data)
 }

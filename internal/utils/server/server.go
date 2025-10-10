@@ -18,6 +18,8 @@ import (
 )
 
 func Start(h *handler.Handler) {
+	config.LoadEnv()
+	db.InitMongoDB()
 	var tlsConfig *tls.Config
 
 	if config.ServerHttpsEnabled {
@@ -44,7 +46,7 @@ func Start(h *handler.Handler) {
 		IdleTimeout:  time.Duration(config.ServerReadTimeout+config.ServerWriteTimeout) * time.Second,
 	}
 
-	logs.Info(`🚀 Server running on :%s 
+	logs.Info(`🚀 Server running on %s 
   ____   ___  ____  ____  ___  ___  _   _ ____   ___
  / ___| / _ \|  _ \|  _ \|_ _|| __|| \ | |  _ \ / _ \
 | |    | | | | |_) | |_) || ||||__ |  \| | | | | | | |
