@@ -36,6 +36,11 @@ async function newProject() {
   await runc(["git", "init"], "🔧 Inicializando nuevo repositorio Git")
   await runc(["git", "add", "."], "📦 Agregando archivos al staging")
   await runc(["git", "commit", "-m", "feat: initial commit from donbarrigon/new"], "💾 Realizando commit inicial")
+  try {
+    runc(["code", "."], "Abriendo editor")
+  } catch (e) {
+    console.error(`${color.red}✗ no tienes vs code instalado:${color.reset} `)
+  }
 
   console.log(`${color.bold}${color.green}🎉 Proyecto inicializado!${color.reset}`)
 }
@@ -53,8 +58,12 @@ async function fork() {
   await runc(["git", "add", "."], "📦 Agregando cambios al staging")
   await runc(["git", "commit", "-m", "feat: initial commit from donbarrigon/new"], "💾 Realizando commit inicial")
 
+  try {
+    runc(["code", "."], "Abriendo editor")
+  } catch (e) {
+    console.error(`${color.red}✗ no tienes vs code instalado:${color.reset} `)
+  }
   console.log(`${color.bold}${color.green}🎉 Fork configurado.!${color.reset}`)
-  console.log(`${color.magenta}Iniciando fork...${color.reset}`)
 }
 
 function initProject() {
