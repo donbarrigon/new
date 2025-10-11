@@ -11,7 +11,7 @@ La idea es que no me toque arrancar de cero cada que vaya a montar un proyecto, 
 descarga el proyecto e instala las dependencias
 
 ```bash
-git clone https://github.com/donbarrigon/new-bun.git
+git clone https://github.com/donbarrigon/new.git
 cd new
 bun make init
 ```
@@ -22,7 +22,7 @@ crea un fork al proyecto original donbarrigon/new
 descarga el proyecto e instala las dependencias
 
 ```bash
-git clone https://github.com/donbarrigon/new-bun.git
+git clone https://github.com/donbarrigon/new.git
 cd new
 bun make init fork
 ```
