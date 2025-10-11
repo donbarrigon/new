@@ -1,2 +1,46 @@
-tmp
-log
+# Node / Bun dependencies
+node_modules/
+bun.lockb
+bun.lock
+.lock.json
+
+# Logs
+tmp/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for instrumented libs
+lib-cov
+
+# Coverage directory
+coverage/
+*.lcov
+
+# Build output
+public/
+dist/
+build/
+out/
+*.bundle.js
+*.tsbuildinfo
+
+# Editor / IDE
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+.env
