@@ -27,15 +27,15 @@ async function newProject() {
   console.log(`\n${color.magenta}Iniciando nuevo proyecto...${color.reset}`)
 
   // Eliminar historial de Git
-  await runc("rm -rf .git", "📁 Eliminando historial de Git existente")
+  await runc(["rm", "-rf", ".git"], "📁 Eliminando historial de Git existente")
 
   // Instalar dependencias
-  await runc("bun install", "📦 Instalando dependencias")
+  await runc(["bun", "install"], "📦 Instalando dependencias")
 
   // Inicializar nuevo repositorio Git
-  await runc("git init", "🔧 Inicializando nuevo repositorio Git")
-  await runc("git add .", "📦 Agregando archivos al staging")
-  await runc('git commit -m "feat: initial commit from donbarrigon/new"', "💾 Realizando commit inicial")
+  await runc(["git", "init"], "🔧 Inicializando nuevo repositorio Git")
+  await runc(["git", "add", "."], "📦 Agregando archivos al staging")
+  await runc(["git", "commit", "-m", "feat: initial commit from donbarrigon/new"], "💾 Realizando commit inicial")
 
   console.log(`${color.bold}${color.green}🎉 Proyecto inicializado!${color.reset}`)
 }
@@ -44,14 +44,14 @@ async function fork() {
   initProject()
   console.log(`\n${color.bold}Configurando fork${color.reset}\n`)
   // Instalar dependencias
-  await runc("bun install", "📦 Instalando dependencias")
+  await runc(["bun", "install"], "📦 Instalando dependencias")
 
   // Renombrar origin a upstream
-  await runc("git remote rename origin upstream", "🔄 Renombrando origin a upstream")
+  await runc(["git", "remote", "rename", "origin", "upstream"], "🔄 Renombrando origin a upstream")
 
   // Commit
-  await runc("git add .", "📦 Agregando cambios al staging")
-  await runc('git commit -m "feat: initial commit from donbarrigon/new"', "💾 Realizando commit inicial")
+  await runc(["git", "add", "."], "📦 Agregando cambios al staging")
+  await runc(["git", "commit", "-m", "feat: initial commit from donbarrigon/new"], "💾 Realizando commit inicial")
 
   console.log(`${color.bold}${color.green}🎉 Fork configurado.!${color.reset}`)
   console.log(`${color.magenta}Iniciando fork...${color.reset}`)

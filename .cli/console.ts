@@ -1,13 +1,14 @@
 import { color } from "./config"
 
-export async function runc(command: string, description: string) {
+export async function runc(command: string[], description: string) {
   try {
     if (description) {
       console.log(`${color.blue}${description}${color.reset}`)
     }
     console.log(`${color.cyan}Ejecutando: ${color.green}${command}${color.reset}`)
 
-    const output = await Bun.$`${command.split(" ")}`.text()
+    const proc = Bun.spawn(command)
+    const output = await new Response(proc.stdout).text()
 
     console.log(`${color.green}✓${color.reset} ${output}\n`)
   } catch (error) {
