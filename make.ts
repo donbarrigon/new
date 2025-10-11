@@ -17,5 +17,5 @@ if (!command) {
 } else if (command === "version" || command === "v" || command === "-v" || command === "--version") {
   console.log("version 0.8.1")
 } else if (command === "init") {
-  init()
+  await init()
 }
