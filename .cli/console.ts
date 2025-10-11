@@ -18,8 +18,8 @@ export async function runc(command: string[], description: string) {
   }
 }
 
-export function inputc(question: string): string {
-  const answer = prompt(`${color.bold}${color.cyan}${question}${color.reset}`, "")
+export function inputc(question: string, defaultValue: string = ""): string {
+  const answer = prompt(`${color.bold}${color.cyan}${question}${color.reset}`, defaultValue)
   if (!answer) {
     return ""
   }

@@ -67,8 +67,7 @@ async function fork() {
 }
 
 function initProject() {
-  console.log(`Formato: usuarioDeGit/nombreDelProyecto`)
-  const projectName = inputc("Nombre del proyecto:")
+  const projectName = inputc("Nombre del proyecto:", "gituser/app-name")
   if (!validateProjectName(projectName)) {
     console.error(
       `${color.red}Formato incorrecto. Usa el formato: usuarioDeGit/nombreDelProyecto sin espacios${color.reset}`,
