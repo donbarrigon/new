@@ -1,6 +1,18 @@
 {
   "name": "new",
-  "module": "any.ts",
+  "author": "donbarrigon",
+  "contributors": [
+    {
+      "name": "donbarrigon",
+      "url": "https://github.com/donbarrigon",
+      "email": "soydonbarrigon@gmail.com"
+    }
+  ],
+  "homepage": "http://localhost:3000/",
+  "repository": "https://github.com/donbarrigon/new",
+  "license": "MIT",
+  "description": "hecho con ❤️ por donbarrigon usando go, bun, mongo y quicktemplate",
+  "module": "make.ts",
   "version": "0.8.1",
   "type": "module",
   "private": true,
@@ -12,7 +24,7 @@
     "typescript": "^5"
   },
   "scripts": {
-    "dev": "bun any.ts dev",
-    "build": "bun any.ts build"
+    "dev": "bun make dev",
+    "build": "bun make build"
   }
 }

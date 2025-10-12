@@ -1,0 +1,4 @@
+{
+  "recommendations": ["golang.go", "biomejs.biome", "jdinabox.quicktemplate-vscode"],
+  "unwantedRecommendations": []
+}

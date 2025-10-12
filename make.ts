@@ -12,10 +12,16 @@ const command = process.argv[2]
 
 if (!command) {
   showHelp()
+  process.exit(0)
 } else if (command === "help" || command === "h" || command === "-h" || command === "--help") {
   showHelp()
+  process.exit(0)
 } else if (command === "version" || command === "v" || command === "-v" || command === "--version") {
   console.log("version 0.8.1")
+  process.exit(0)
 } else if (command === "init") {
   await init()
+  process.exit(0)
+} else if (command === "dev") {
+  process.exit(0)
 }

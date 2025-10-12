@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { basename, dirname, join } from "node:path"
 import { color } from "./config"
 import { inputc, runc } from "./console"
@@ -23,7 +23,7 @@ export async function init() {
 }
 
 async function newProject() {
-  initProject()
+  await initProject()
   console.log(`\n${color.magenta}Iniciando nuevo proyecto...${color.reset}`)
 
   // Eliminar historial de Git
@@ -46,7 +46,7 @@ async function newProject() {
 }
 
 async function fork() {
-  initProject()
+  await initProject()
   console.log(`\n${color.bold}Configurando fork${color.reset}\n`)
   // Instalar dependencias
   await runc(["bun", "install"], "📦 Instalando dependencias")
@@ -66,7 +66,7 @@ async function fork() {
   console.log(`${color.bold}${color.green}🎉 Fork configurado.!${color.reset}`)
 }
 
-function initProject() {
+async function initProject() {
   const projectName = inputc("Nombre del proyecto:", "gituser/app-name")
   if (!validateProjectName(projectName)) {
     console.error(
@@ -91,6 +91,9 @@ function initProject() {
   }
   // Actualizar package.json
   updatePackageJson(projectNameOnly)
+
+  // Actualizar go.mod
+  await updateModule(projectName)
 
   // Renombrar la carpeta proyecto
   renameProjectDir(projectNameOnly)
@@ -124,7 +127,7 @@ export function renameProjectDir(projectName: string) {
 
   // Evita colisión si ya existe
   if (existsSync(newPath)) {
-    console.error(`❌ Ya existe una carpeta con el nombre '${projectName}'`)
+    console.error(`${color.red}✗ Ya existe una carpeta con el nombre${color.reset} '${projectName}'`)
     process.exit(1)
   }
 
@@ -133,5 +136,70 @@ export function renameProjectDir(projectName: string) {
 
   // Cambiar el directorio actual
   process.chdir(newPath)
-  console.log(`✅ Proyecto renombrado y movido a '${newPath}'`)
+  console.log(`✓ Proyecto renombrado y movido a '${newPath}'`)
+}
+
+/**
+ * Actualiza el nombre del módulo en go.mod y todos los archivos .go
+ * @param newModule - Nuevo nombre del módulo (ej: "github.com/usuario/proyecto")
+ */
+async function updateModule(newModule: string): Promise<void> {
+  const oldModule = "donbarrigon/new"
+  const oldImportPath = "donbarrigon/new/internal/"
+  const newImportPath = `${newModule}/internal/`
+
+  console.log(`🔄 Actualizando módulo de "${oldModule}" a "${newModule}"`)
+
+  try {
+    // 1. Actualizar go.mod
+    console.log("📝 Actualizando go.mod...")
+    const goModContent = readFileSync("go.mod", "utf-8")
+    const updatedGoMod = goModContent.replace(`module ${oldModule}`, `module ${newModule}`)
+    writeFileSync("go.mod", updatedGoMod, "utf-8")
+    console.log(`${color.green}✓ go.mod actualizado${color.reset}`)
+
+    // 2. Actualizar todos los archivos .go en internal/
+    console.log("📝 Actualizando archivos .go en internal/...")
+    const filesUpdated = updateGoFiles("internal", oldImportPath, newImportPath)
+    console.log(`${color.green}✓ ${filesUpdated} archivos actualizados${color.reset}`)
+
+    // 3. Ejecutar go mod tidy para limpiar dependencias
+    await runc(["go", "mod", "tidy"], "🧹 Ejecutando go mod tidy")
+    console.log(`${color.green}✓ Dependencias actualizadas${color.reset}`)
+
+    console.log(
+      `\n${color.green}✓ Módulo actualizado exitosamente a${color.reset} ${color.magenta}"${newModule}${color.reset}"`,
+    )
+  } catch (error) {
+    console.error(`${color.red}✗ Error al actualizar el módulo:${color.reset}`, error)
+    throw error
+  }
+}
+
+/**
+ * Actualiza recursivamente todos los archivos .go en un directorio
+ */
+function updateGoFiles(dir: string, oldPath: string, newPath: string): number {
+  let count = 0
+  const entries = readdirSync(dir, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name)
+
+    if (entry.isDirectory()) {
+      // Recursión para subdirectorios
+      count += updateGoFiles(fullPath, oldPath, newPath)
+    } else if (entry.isFile() && entry.name.endsWith(".go")) {
+      // Actualizar archivo .go
+      const content = readFileSync(fullPath, "utf-8")
+      if (content.includes(oldPath)) {
+        const updatedContent = content.replaceAll(oldPath, newPath)
+        writeFileSync(fullPath, updatedContent, "utf-8")
+        count++
+        console.log(`  ✓ ${fullPath}`)
+      }
+    }
+  }
+
+  return count
 }
