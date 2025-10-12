@@ -5,7 +5,7 @@ import { extname, join } from "path"
 import { color, dir } from "./config"
 
 export async function devMode() {
-  await setupDirectories([dir.dev.js, dir.dev.ts, dir.dev.css, dir.dev.wasm, dir.dev.qtpl])
+  await setupDirectories([dir.dev.js, dir.dev.css, dir.dev.wasm, dir.dev.qtpl])
   await compileCSS(true)
   await compileScripts(true)
 }
@@ -61,7 +61,7 @@ async function compileCSS(isDev: boolean = true) {
 async function compileScripts(isDev: boolean = true) {
   try {
     if (!existsSync(dir.code.js)) {
-      console.log(`⚠️  ${color.yellow}Directorio app/ui/resources/js no existe${color.reset}`)
+      console.log(`⚠️  ${color.yellow}Directorio ${dir.code.js} no existe${color.reset}`)
       return
     }
 

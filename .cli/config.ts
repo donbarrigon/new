@@ -5,7 +5,6 @@
 // build:
 export const dir = {
   code: {
-    ts: "internal/ui/ts",
     js: "internal/ui/ts",
     css: "internal/ui/css",
     wasm: "internal/ui/wasm",
@@ -13,14 +12,12 @@ export const dir = {
   },
   dev: {
     js: "public/js",
-    ts: "public/js",
     css: "public/css",
     wasm: "public/wasm",
     qtpl: "internal/ui/view",
   },
   build: {
     js: "dist/public/js",
-    ts: "dist/public/js",
     css: "dist/public/css",
     wasm: "dist/public/wasm",
     qtpl: "internal/ui/view",
