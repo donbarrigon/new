@@ -1,4 +1,4 @@
-package v
+package validate
 
 import (
 	"donbarrigon/new/internal/utils/fm"
@@ -73,4 +73,33 @@ func Required(value reflect.Value, params ...string) (string, fm.Placeholder, bo
 	}
 
 	return "", nil, false
+}
+
+func isZeroValue(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.String:
+		return v.String() == ""
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Interface, reflect.Ptr, reflect.Slice, reflect.Map, reflect.Chan, reflect.Func:
+		return v.IsNil()
+	case reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			if !isZeroValue(v.Index(i)) {
+				return false
+			}
+		}
+		return true
+	case reflect.Struct:
+		// Para time.Time u otros structs
+		return v.IsZero()
+	default:
+		return false
+	}
 }

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"donbarrigon/new/internal/handler/controller"
+	"donbarrigon/new/internal/http/controller"
 	"donbarrigon/new/internal/utils/handler"
 )
 

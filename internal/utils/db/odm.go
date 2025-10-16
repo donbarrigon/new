@@ -198,7 +198,7 @@ func (o *Odm) Update() error {
 	if result.ModifiedCount == 0 {
 		return err.New(err.CONFLICT, "No se aplicaron cambios al guardar el documento", "!result.ModifiedCount == 0")
 	}
-	return nil
+	return o.Model.AfterUpdate()
 }
 
 func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, error) {
@@ -212,6 +212,10 @@ func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, error) {
 // OjO no usa el hook BeforeUpdate
 
 func (o *Odm) Delete() error {
+	if e := o.Model.BeforeDelete(); e != nil {
+		return e
+	}
+
 	filter := bson.D{bson.E{Key: "_id", Value: o.Model.GetID()}}
 
 	result, e := DB.Collection(o.Model.CollectionName()).DeleteOne(context.TODO(), filter)
@@ -221,7 +225,7 @@ func (o *Odm) Delete() error {
 	if result.DeletedCount == 0 {
 		return err.New(err.CONFLICT, "No se elimino el documento", "!result.DeletedCount == 0")
 	}
-	return nil
+	return o.Model.AfterDelete()
 }
 
 func (o *Odm) MoveToTrash() error {

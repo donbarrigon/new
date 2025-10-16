@@ -1,4 +1,4 @@
-package v
+package validate
 
 import (
 	"donbarrigon/new/internal/utils/fm"
@@ -175,6 +175,17 @@ func Between(value reflect.Value, params ...string) (string, fm.Placeholder, boo
 	ph := fm.Placeholder{"min": minStr, "max": maxStr}
 
 	switch value.Kind() {
+	case reflect.String:
+		min, err1 := strconv.Atoi(minStr)
+		max, err2 := strconv.Atoi(maxStr)
+		if err1 != nil || err2 != nil {
+			return "Parámetros de longitud inválidos", ph, true
+		}
+		length := len(value.String())
+		if length < min || length > max {
+			return "La longitud del campo :field debe estar entre :min y :max caracteres", ph, true
+		}
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		min, err1 := strconv.ParseInt(minStr, 10, 64)
 		max, err2 := strconv.ParseInt(maxStr, 10, 64)

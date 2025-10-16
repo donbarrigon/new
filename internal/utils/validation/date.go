@@ -1,4 +1,4 @@
-package v
+package validate
 
 import (
 	"donbarrigon/new/internal/utils/fm"
