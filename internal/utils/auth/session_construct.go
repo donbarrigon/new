@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"donbarrigon/new/internal/database/model"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
 	"net"
@@ -11,13 +10,24 @@ import (
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func SessionStart(w http.ResponseWriter, r *http.Request, user *model.User) (*Session, error) {
+type SessionUser interface {
+	GetID() bson.ObjectID
+	Can(permission string) bool
+	HasRole(role string) bool
+}
+
+func SessionStart(w http.ResponseWriter, r *http.Request, user SessionUser) (*Session, error) {
 	host, _, _ := net.SplitHostPort(r.RemoteAddr)
+	tk, e := GenerateToken()
+	if e != nil {
+		return nil, e
+	}
 	s := &Session{
 		//ID:          bson.NewObjectID(),
-		Token:       GenerateToken(),
+		Token:       tk,
 		User:        user,
 		IP:          host,
 		Agent:       r.Header.Get("user-agent"),

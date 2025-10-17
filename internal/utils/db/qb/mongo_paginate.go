@@ -10,7 +10,7 @@ import (
 )
 
 // PaginateFindOptions toma los parámetros de búsqueda del handler.Contex (c) y
-// los convierte en un conjunto de opciones de búsqueda (FindOptions) de MongoDB.
+// los convierte en un conjunto de opciones de búsqueda (*options.FindOptionsBuilder) de MongoDB.
 // @param page: número de página para la paginación (predeterminado: 1)
 // @param per_page: número de elementos por página (predeterminado: 15, máximo: 1000)
 //

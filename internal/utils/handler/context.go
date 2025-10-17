@@ -18,17 +18,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type AuthInterface interface {
-	GetID() bson.ObjectID
-	GetUserID() bson.ObjectID
-	Can(permissionName string) error
-	HasRole(roleName string) error
-}
-
-type Validator interface {
-	PrepareForValidation(c *Context) error
-}
-
 type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request

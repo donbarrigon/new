@@ -154,125 +154,125 @@ func (l LogLevel) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(l.String(), start)
 }
 
-func Emergency(msg string, ph ...any) {
+func Emergency(msg string, a ...any) {
 	if EMERGENCY > LV {
 		return
 	}
 	l := &Logger{
 		Level:        EMERGENCY,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 }
 
-func Alert(msg string, ph ...any) {
+func Alert(msg string, a ...any) {
 	if ALERT > LV {
 		return
 	}
 	l := &Logger{
 		Level:        ALERT,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 
 }
 
-func Critical(msg string, ph ...any) {
+func Critical(msg string, a ...any) {
 	if CRITICAL > LV {
 		return
 	}
 	l := &Logger{
 		Level:        CRITICAL,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 
 }
 
-func Error(msg string, ph ...any) {
+func Error(msg string, a ...any) {
 	if ERROR > LV {
 		return
 	}
 	l := &Logger{
 		Level:        ERROR,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 }
 
-func Warning(msg string, ph ...any) {
+func Warning(msg string, a ...any) {
 	if WARNING > LV {
 		return
 	}
 	l := &Logger{
 		Level:        WARNING,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 }
 
-func Notice(msg string, ph ...any) {
+func Notice(msg string, a ...any) {
 	if NOTICE > LV {
 		return
 	}
 	l := &Logger{
 		Level:        NOTICE,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 
 }
 
-func Info(msg string, ph ...any) {
+func Info(msg string, a ...any) {
 	if INFO > LV {
 		return
 	}
 	l := &Logger{
 		Level:        INFO,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 }
 
-func Debug(msg string, ph ...any) {
+func Debug(msg string, a ...any) {
 	if DEBUG > LV {
 		return
 	}
 	l := &Logger{
 		Level:        DEBUG,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 }
 
-func Log(level LogLevel, msg string, ph ...any) {
+func Log(level LogLevel, msg string, a ...any) {
 	if level > LV {
 		return
 	}
 	l := &Logger{
 		Level:        level,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 }
 
-func Print(msg string, ph ...any) {
+func Print(msg string, a ...any) {
 	if PRINT > LV {
 		return
 	}
 	l := &Logger{
 		Level:        PRINT,
 		Message:      msg,
-		Placeholders: ph,
+		Placeholders: a,
 	}
 	l.output()
 }

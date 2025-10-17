@@ -86,6 +86,7 @@ func (o *Odm) Find(result any, filter bson.D, opts ...options.Lister[options.Fin
 	return nil
 }
 
+// busqueda eq
 func (o *Odm) FindByField(result any, field string, value any, opts ...options.Lister[options.FindOptions]) error {
 	filter := bson.D{bson.E{Key: field, Value: value}}
 	ctx := context.TODO()
@@ -226,8 +227,4 @@ func (o *Odm) Delete() error {
 		return err.New(err.CONFLICT, "No se elimino el documento", "!result.DeletedCount == 0")
 	}
 	return o.Model.AfterDelete()
-}
-
-func (o *Odm) MoveToTrash() error {
-	return o.Delete()
 }

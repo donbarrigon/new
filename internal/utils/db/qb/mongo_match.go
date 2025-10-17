@@ -18,7 +18,7 @@ func OrWhere(key string, value ...bson.E) bson.D {
 	return bson.D{bson.E{Key: key, Value: bson.D(value)}}
 }
 
-func Document(value ...bson.E) bson.D {
+func Doc(value ...bson.E) bson.D {
 	return bson.D(value)
 }
 

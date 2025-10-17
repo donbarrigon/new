@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"donbarrigon/new/internal/database/model"
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 type Session struct {
 	//ID          bson.ObjectID
 	Token       string
-	User        *model.User
+	User        SessionUser
 	IP          string
 	Agent       string
 	Lang        string
@@ -107,7 +106,11 @@ func (s *Session) ClearCookie() {
 }
 
 func (s *Session) Can(permission string) bool {
-	return s.User.Permissions[permission]
+	return s.User.Can(permission)
+}
+
+func (s *Session) HasRole(role string) bool {
+	return s.User.HasRole(role)
 }
 
 func (s *Session) saveFileSession() error {
@@ -126,7 +129,7 @@ func (s *Session) saveFileSession() error {
 }
 
 func (s *Session) saveFileUserIndex(data map[string]time.Time) error {
-	path, filename := fileUserIndex(s.User.ID.Hex())
+	path, filename := fileUserIndex(s.User.GetID().Hex())
 	encoded, e := msgpack.Marshal(data)
 	if e != nil {
 		return err.New(err.INTERNAL, "No se pudo codificar el indice de sessiones", e)
@@ -170,7 +173,7 @@ func (s *Session) removeFileUserIndex() error {
 }
 
 func (s *Session) deleteFileUserIndex() error {
-	path, fileName := fileUserIndex(s.User.ID.Hex())
+	path, fileName := fileUserIndex(s.User.GetID().Hex())
 	if e := os.Remove(path + fileName); e != nil {
 		return err.New(err.INTERNAL, "No se eliminó el indice de la sesion", e)
 	}
@@ -179,7 +182,7 @@ func (s *Session) deleteFileUserIndex() error {
 
 func (s *Session) readFileUserIndex() (map[string]time.Time, error) {
 	data := map[string]time.Time{}
-	path, filename := fileUserIndex(s.User.ID.Hex())
+	path, filename := fileUserIndex(s.User.GetID().Hex())
 	info, e := os.Stat(path + filename)
 	if e == nil && !info.IsDir() {
 		encoded, e := os.ReadFile(path + filename)
@@ -194,7 +197,7 @@ func (s *Session) readFileUserIndex() (map[string]time.Time, error) {
 }
 
 func (s *Session) muUser() *sync.Mutex {
-	mu, _ := muSession.LoadOrStore(s.User.ID.Hex(), &sync.Mutex{})
+	mu, _ := muSession.LoadOrStore(s.User.GetID().Hex(), &sync.Mutex{})
 	return mu.(*sync.Mutex)
 }
 

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"donbarrigon/new/internal/ui/view"
+	"donbarrigon/new/internal/app/ui/view"
 	"donbarrigon/new/internal/utils/handler"
 )
 
