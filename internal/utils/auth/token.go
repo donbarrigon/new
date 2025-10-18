@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 )
 
-func GenerateToken() (string, error) {
+func GenerateHexToken() (string, error) {
 	bytes := make([]byte, 32)
 	if _, e := rand.Read(bytes); e != nil {
 		logs.Error("Error al generar el token")

@@ -76,8 +76,8 @@ func Fill(model any, request any) error {
 // Fill compara model con request y retorna los valores antiguos y los nuevos.
 // Usa el tag bson como clave.
 // Además actualiza el model con los valores nuevos.
-// @return original, dirty, error
-func Filld(model any, request any) (map[string]any, map[string]any, error) {
+// @return error
+func Filld(model Model, request any) error {
 
 	original := map[string]any{}
 	dirty := map[string]any{}
@@ -86,14 +86,18 @@ func Filld(model any, request any) (map[string]any, map[string]any, error) {
 	requestValue := reflect.ValueOf(request)
 
 	if modelValue.Kind() != reflect.Ptr || requestValue.Kind() != reflect.Ptr {
-		return original, dirty, err.Internal("El modelo y el request deben ser punteros.")
+		model.SetOriginal(original)
+		model.SetDirty(dirty)
+		return err.Internal("El modelo y el request deben ser punteros.")
 	}
 
 	modelValue = modelValue.Elem()
 	requestValue = requestValue.Elem()
 
 	if modelValue.Kind() != reflect.Struct || requestValue.Kind() != reflect.Struct {
-		return original, dirty, err.Internal("El modelo y el request deben ser estructuras.")
+		model.SetOriginal(original)
+		model.SetDirty(dirty)
+		return err.Internal("El modelo y el request deben ser estructuras.")
 	}
 
 	modelType := modelValue.Type()
@@ -158,6 +162,7 @@ func Filld(model any, request any) (map[string]any, map[string]any, error) {
 			modelField.Set(newValue)
 		}
 	}
-
-	return original, dirty, nil
+	model.SetOriginal(original)
+	model.SetDirty(dirty)
+	return nil
 }

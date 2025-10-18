@@ -54,7 +54,7 @@ func (c *Context) Get(param string, defaultValue string) string {
 	return c.Request.URL.Query().Get(param)
 }
 
-func (c *Context) ResponseJSON(status int, data any) {
+func (c *Context) Json(status int, data any) {
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(status)
 
@@ -65,40 +65,40 @@ func (c *Context) ResponseJSON(status int, data any) {
 	}
 }
 
-func (c *Context) ResponseError(e error) {
+func (c *Context) JsonError(e error) {
 	var he *err.HttpError
 	if errors.As(e, &he) {
 		he.Message = lang.T(c.Lang(), he.Message, nil)
-		c.ResponseJSON(he.Status, he)
+		c.Json(he.Status, he)
 		return
 	}
 	var ve *err.ValidationError
 	if errors.As(e, &ve) {
 		her := ve.Herror(c.Lang())
-		c.ResponseJSON(her.Status, her)
+		c.Json(her.Status, her)
 		return
 	}
 	her := err.Internal(e)
-	c.ResponseJSON(her.Status, her)
+	c.Json(her.Status, her)
 }
 
-func (c *Context) ResponseNotFound() {
-	c.ResponseError(err.NotFound(lang.T(c.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": c.Request.Method, "path": c.Request.URL.Path})))
+func (c *Context) JsonNotFound() {
+	c.JsonError(err.NotFound(lang.T(c.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": c.Request.Method, "path": c.Request.URL.Path})))
 }
 
-func (c *Context) ResponseOk(data any) {
-	c.ResponseJSON(http.StatusOK, data)
+func (c *Context) JsonOk(data any) {
+	c.Json(http.StatusOK, data)
 }
 
-func (c *Context) ResponseCreated(data any) {
-	c.ResponseJSON(http.StatusCreated, data)
+func (c *Context) JsonCreated(data any) {
+	c.Json(http.StatusCreated, data)
 }
 
-func (c *Context) ResponseNoContent() {
+func (c *Context) JsonNoContent() {
 	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
-func (c *Context) ResponseCSV(fileName string, data any, comma ...rune) {
+func (c *Context) Plain(fileName string, data any, comma ...rune) {
 	val := reflect.ValueOf(data)
 
 	if val.Kind() != reflect.Slice {
@@ -107,7 +107,7 @@ func (c *Context) ResponseCSV(fileName string, data any, comma ...rune) {
 			Message: "Error writing CSV",
 			Err:     "Data is not a slice of structs",
 		}
-		c.ResponseError(err)
+		c.JsonError(err)
 		return
 	}
 
@@ -122,7 +122,7 @@ func (c *Context) ResponseCSV(fileName string, data any, comma ...rune) {
 
 	if val.Len() == 0 {
 		err := err.NotFound("No data available")
-		c.ResponseError(err)
+		c.JsonError(err)
 		return
 	}
 

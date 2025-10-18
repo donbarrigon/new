@@ -21,14 +21,23 @@ type Model interface {
 	AfterUpdate() error
 	AfterDelete() error
 
-	Create() error // esto lo agrega el odm
-	Delete() error // esto lo agrega el odm
+	// funciones nesesarias para el move to trash
+	Create() error
+	Delete() error
+
+	// funciones nesesarias para el history record
+	GetOriginal() map[string]any
+	GetDirty() map[string]any
+	SetOriginal(original map[string]any)
+	SetDirty(dirty map[string]any)
 }
 
 type Collection []Model
 
 type Odm struct {
-	Model Model `bson:"-" json:"-"`
+	Model    Model          `bson:"-" json:"-"`
+	dirty    map[string]any `bson:"-" json:"-"`
+	original map[string]any `bson:"-" json:"-"`
 }
 
 func (o *Odm) BeforeCreate() error { return nil }
@@ -37,6 +46,11 @@ func (o *Odm) BeforeDelete() error { return nil }
 func (o *Odm) AfterCreate() error  { return nil }
 func (o *Odm) AfterUpdate() error  { return nil }
 func (o *Odm) AfterDelete() error  { return nil }
+
+func (o *Odm) GetOriginal() map[string]any         { return o.original }
+func (o *Odm) GetDirty() map[string]any            { return o.dirty }
+func (o *Odm) SetOriginal(original map[string]any) { o.original = original }
+func (o *Odm) SetDirty(dirty map[string]any)       { o.dirty = dirty }
 
 func (o *Odm) FindByHexID(id string) error {
 
@@ -202,12 +216,12 @@ func (o *Odm) Update() error {
 	return o.Model.AfterUpdate()
 }
 
-func (o *Odm) UpdateBy(validator any) (map[string]any, map[string]any, error) {
-	original, dirty, e := Filld(o.Model, validator)
-	if e != nil {
-		return original, dirty, e
+func (o *Odm) UpdateBy(validator any) error {
+
+	if e := Filld(o.Model, validator); e != nil {
+		return e
 	}
-	return original, dirty, o.Update()
+	return o.Update()
 }
 
 // OjO no usa el hook BeforeUpdate

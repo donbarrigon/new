@@ -43,16 +43,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				msg = []byte{}
 			}
 			go logs.Critical("Panic: %s", string(msg))
-			c.ResponseError(e)
+			c.JsonError(e)
 			return
 		}
 	}()
+
 	route := strings.ToLower(strings.Trim(r.URL.Path, "/")) + ":" + r.Method
 	if ctrl, ok := h.Routes[route]; ok {
 		ctrl(c)
 		return
 	} else {
-		c.ResponseNotFound()
+		c.JsonNotFound()
 		return
 	}
 

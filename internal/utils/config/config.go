@@ -139,25 +139,25 @@ func LoadEnv(filepath ...string) {
 		case "LOG_LEVEL":
 			switch strings.ToUpper(strings.TrimSpace(value)) {
 			case "OFF":
-				logs.LV = logs.OFF
+				logs.LV = logs.LV_OFF
 			case "EMERGENCY":
-				logs.LV = logs.EMERGENCY
+				logs.LV = logs.LV_EMERGENCY
 			case "ALERT":
-				logs.LV = logs.ALERT
+				logs.LV = logs.LV_ALERT
 			case "CRITICAL":
-				logs.LV = logs.CRITICAL
+				logs.LV = logs.LV_CRITICAL
 			case "ERROR":
-				logs.LV = logs.ERROR
+				logs.LV = logs.LV_ERROR
 			case "WARNING":
-				logs.LV = logs.WARNING
+				logs.LV = logs.LV_WARNING
 			case "NOTICE":
-				logs.LV = logs.NOTICE
+				logs.LV = logs.LV_NOTICE
 			case "INFO":
-				logs.LV = logs.INFO
+				logs.LV = logs.LV_INFO
 			case "DEBUG":
-				logs.LV = logs.DEBUG
+				logs.LV = logs.LV_DEBUG
 			default:
-				logs.LV = logs.DEBUG
+				logs.LV = logs.LV_DEBUG
 			}
 		case "LOG_FLAGS":
 			flags := 0

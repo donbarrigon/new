@@ -28,16 +28,16 @@ type Logger struct {
 }
 
 const (
-	EMERGENCY LogLevel = iota // 0 - El sistema está inutilizable
-	ALERT                     // 1 - Se necesita acción inmediata
-	CRITICAL                  // 2 - Fallo crítico del sistema
-	ERROR                     // 3 - Errores de ejecución
-	WARNING                   // 4 - Algo inesperado pasó
-	NOTICE                    // 5 - Eventos normales, pero significativos
-	INFO                      // 6 - Información general
-	DEBUG                     // 7 - Información detallada para depuración
-	PRINT                     // 8 - Solo imprime en consola
-	OFF                       // 9 - Desactiva todos los logs
+	LV_EMERGENCY LogLevel = iota // 0 - El sistema está inutilizable
+	LV_ALERT                     // 1 - Se necesita acción inmediata
+	LV_CRITICAL                  // 2 - Fallo crítico del sistema
+	LV_ERROR                     // 3 - Errores de ejecución
+	LV_WARNING                   // 4 - Algo inesperado pasó
+	LV_NOTICE                    // 5 - Eventos normales, pero significativos
+	LV_INFO                      // 6 - Información general
+	LV_DEBUG                     // 7 - Información detallada para depuración
+	LV_PRINT                     // 8 - Solo imprime en consola
+	LV_OFF                       // 9 - Desactiva todos los logs
 )
 
 const (
@@ -62,7 +62,7 @@ const (
 	FILE_FORMAT_LTSV                        // 3 - LTSV (Labelled Tab Separated Values)
 )
 
-var LV LogLevel = DEBUG
+var LV LogLevel = LV_DEBUG
 var Flags = FLAG_TIMESTAMP | FLAG_FILE | FLAG_SHORTFILE | FLAG_LEVEL | FLAG_CONSOLE_COLOR
 var Outputs = OUTPUT_CONSOLE | OUTPUT_FILE
 var FileFormat = FILE_FORMAT_NDJSON
@@ -73,25 +73,25 @@ var Days = 30
 
 func (lv LogLevel) String() string {
 	switch lv {
-	case OFF:
+	case LV_OFF:
 		return "OFF"
-	case EMERGENCY:
+	case LV_EMERGENCY:
 		return "EMERGENCY"
-	case ALERT:
+	case LV_ALERT:
 		return "ALERT"
-	case CRITICAL:
+	case LV_CRITICAL:
 		return "CRITICAL"
-	case ERROR:
+	case LV_ERROR:
 		return "ERROR"
-	case WARNING:
+	case LV_WARNING:
 		return "WARNING"
-	case NOTICE:
+	case LV_NOTICE:
 		return "NOTICE"
-	case INFO:
+	case LV_INFO:
 		return "INFO"
-	case DEBUG:
+	case LV_DEBUG:
 		return "DEBUG"
-	case PRINT:
+	case LV_PRINT:
 		return "PRINT"
 	default:
 		return "UNKNOWN"
@@ -100,23 +100,23 @@ func (lv LogLevel) String() string {
 
 func (lv LogLevel) Color() string {
 	switch lv {
-	case EMERGENCY:
+	case LV_EMERGENCY:
 		return "\033[91m" // rojo brillante
-	case ALERT:
+	case LV_ALERT:
 		return "\033[95m" // magenta
-	case CRITICAL:
+	case LV_CRITICAL:
 		return "\033[35m" // fucsia
-	case ERROR:
+	case LV_ERROR:
 		return "\033[31m" // rojo
-	case WARNING:
+	case LV_WARNING:
 		return "\033[33m" // amarillo
-	case NOTICE:
+	case LV_NOTICE:
 		return "\033[92m" // verde claro
-	case INFO:
+	case LV_INFO:
 		return "\033[34m" // azul
-	case DEBUG:
+	case LV_DEBUG:
 		return "\033[36m" // cian
-	case PRINT:
+	case LV_PRINT:
 		return "\033[90m" // gris claro
 	default:
 		return "\033[0m"
@@ -155,11 +155,11 @@ func (l LogLevel) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 }
 
 func Emergency(msg string, a ...any) {
-	if EMERGENCY > LV {
+	if LV_EMERGENCY > LV {
 		return
 	}
 	l := &Logger{
-		Level:        EMERGENCY,
+		Level:        LV_EMERGENCY,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -167,11 +167,11 @@ func Emergency(msg string, a ...any) {
 }
 
 func Alert(msg string, a ...any) {
-	if ALERT > LV {
+	if LV_ALERT > LV {
 		return
 	}
 	l := &Logger{
-		Level:        ALERT,
+		Level:        LV_ALERT,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -180,11 +180,11 @@ func Alert(msg string, a ...any) {
 }
 
 func Critical(msg string, a ...any) {
-	if CRITICAL > LV {
+	if LV_CRITICAL > LV {
 		return
 	}
 	l := &Logger{
-		Level:        CRITICAL,
+		Level:        LV_CRITICAL,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -193,11 +193,11 @@ func Critical(msg string, a ...any) {
 }
 
 func Error(msg string, a ...any) {
-	if ERROR > LV {
+	if LV_ERROR > LV {
 		return
 	}
 	l := &Logger{
-		Level:        ERROR,
+		Level:        LV_ERROR,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -205,11 +205,11 @@ func Error(msg string, a ...any) {
 }
 
 func Warning(msg string, a ...any) {
-	if WARNING > LV {
+	if LV_WARNING > LV {
 		return
 	}
 	l := &Logger{
-		Level:        WARNING,
+		Level:        LV_WARNING,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -217,11 +217,11 @@ func Warning(msg string, a ...any) {
 }
 
 func Notice(msg string, a ...any) {
-	if NOTICE > LV {
+	if LV_NOTICE > LV {
 		return
 	}
 	l := &Logger{
-		Level:        NOTICE,
+		Level:        LV_NOTICE,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -230,11 +230,11 @@ func Notice(msg string, a ...any) {
 }
 
 func Info(msg string, a ...any) {
-	if INFO > LV {
+	if LV_INFO > LV {
 		return
 	}
 	l := &Logger{
-		Level:        INFO,
+		Level:        LV_INFO,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -242,11 +242,11 @@ func Info(msg string, a ...any) {
 }
 
 func Debug(msg string, a ...any) {
-	if DEBUG > LV {
+	if LV_DEBUG > LV {
 		return
 	}
 	l := &Logger{
-		Level:        DEBUG,
+		Level:        LV_DEBUG,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -266,11 +266,11 @@ func Log(level LogLevel, msg string, a ...any) {
 }
 
 func Print(msg string, a ...any) {
-	if PRINT > LV {
+	if LV_PRINT > LV {
 		return
 	}
 	l := &Logger{
-		Level:        PRINT,
+		Level:        LV_PRINT,
 		Message:      msg,
 		Placeholders: a,
 	}
@@ -314,9 +314,9 @@ func (l *Logger) output() {
 		l.Line = strconv.Itoa(line)
 	}
 
-	if Outputs&OUTPUT_CONSOLE != 0 || l.Level == PRINT {
+	if Outputs&OUTPUT_CONSOLE != 0 || l.Level == LV_PRINT {
 		l.outputConsole()
-		if l.Level == PRINT {
+		if l.Level == LV_PRINT {
 			return
 		}
 	}

@@ -21,7 +21,7 @@ type SessionUser interface {
 
 func SessionStart(w http.ResponseWriter, r *http.Request, user SessionUser) (*Session, error) {
 	host, _, _ := net.SplitHostPort(r.RemoteAddr)
-	tk, e := GenerateToken()
+	tk, e := GenerateHexToken()
 	if e != nil {
 		return nil, e
 	}
