@@ -11,6 +11,9 @@ func Run() []db.Migration {
 		CreateHistoryCollection{},
 		CreateTokensCollection{},
 		CreateSessionCollection{},
+		CreateCountriesCollection{},
+		CreateStatesCollection{},
+		CreateCitiesCollection{},
 	}
 	return m
 }

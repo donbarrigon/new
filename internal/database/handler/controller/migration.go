@@ -3,49 +3,29 @@ package controller
 import (
 	"bufio"
 	"context"
+	"donbarrigon/new/internal/database/data/migration"
+	"donbarrigon/new/internal/database/handler/service"
+	"donbarrigon/new/internal/utils/db"
 	"donbarrigon/new/internal/utils/handler"
+	"donbarrigon/new/internal/utils/logs"
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
-	"time"
 )
-
-const migrationFileName = "tmp/migration_tracker.txt"
 
 func Migrate(c *handler.Context) {
 
-	file := openFile(migrationFileName)
-	defer file.Close()
+	migrations := migration.Run()
+	records := service.GetMigrationTracker()
+	execute := []db.Migration{}
 
-	m := migration.Run()
-
-	scanner := bufio.NewScanner(file)
-	records := []map[string]string{}
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		fields := strings.Split(line, "\t")
-		record := map[string]string{}
-		for _, field := range fields {
-			parts := strings.SplitN(field, ":", 2)
-			if len(parts) < 2 {
-				continue
-			}
-			record[parts[0]] = parts[1]
-		}
-		records = append(records, record)
-	}
-	if er := scanner.Err(); er != nil {
-		app.PrintError("Fail to read file: :file :error", app.E("file", file.Name()), app.E("error", er.Error()))
-		panic(er.Error())
-	}
-
-	migrations := []app.List{}
-	for _, m := range migration.Migrations {
+	for _, m := range migrations {
 		exists := false
+		t := reflect.TypeOf(m)
+		name := t.Name()
 		for _, record := range records {
-			name := m.Get("name").(string)
 			if record["name"] == name {
 				if record["action"] == "up" {
 					exists = true
@@ -56,13 +36,13 @@ func Migrate(c *handler.Context) {
 			}
 		}
 		if !exists {
-			migrations = append(migrations, m)
+			execute = append(execute, m)
 		}
 	}
-	runMigrations("up", migrations, file)
+	service.RunMigrations("up", execute)
 
-	app.PrintInfo("Migrations executed")
-	ctx.ResponseNoContent()
+	logs.Info("Migrations executed")
+	c.NoContent()
 }
 
 func Rollback(ctx *handler.Context) {
@@ -285,32 +265,4 @@ func Fresh(ctx *handler.Context) {
 
 	app.PrintInfo("Database refreshed")
 	ctx.ResponseNoContent()
-}
-
-func openFile(fileName string) *os.File {
-	if er := os.MkdirAll(app.Env.LOG_PATH, os.ModePerm); er != nil {
-		app.PrintError("Fail to create log directory :path: :error", app.E("path", app.Env.LOG_PATH), app.E("error", er.Error()))
-		panic(er.Error())
-	}
-
-	filePath := filepath.Join(app.Env.LOG_PATH, fileName)
-
-	file, er := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
-	if er != nil {
-		app.PrintError("Fail to open file: :file :error", app.E("file", filePath), app.E("error", er.Error()))
-		panic(er.Error())
-	}
-	return file
-}
-
-func runMigrations(action string, migrations []app.List, file *os.File) {
-	executedAt := time.Now()
-	for _, m := range migrations {
-		m.Get(action).(func())()
-		line := fmt.Sprintf("executed_at:%s\taction:%s\tname:%v\n", executedAt, action, m.Get("name"))
-		if _, er := file.WriteString(line); er != nil {
-			app.PrintError("Fail to write :file :error", app.E("file", file.Name()), app.E("error", er.Error()))
-			panic(er.Error())
-		}
-	}
 }

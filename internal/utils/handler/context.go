@@ -94,7 +94,7 @@ func (c *Context) JsonCreated(data any) {
 	c.Json(http.StatusCreated, data)
 }
 
-func (c *Context) JsonNoContent() {
+func (c *Context) NoContent() {
 	c.Writer.WriteHeader(http.StatusNoContent)
 }
 

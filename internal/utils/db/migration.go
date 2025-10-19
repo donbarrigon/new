@@ -34,7 +34,7 @@ func AlterCollection(name string, callback func(col *CollectionBuilder)) {
 }
 
 // Index crea un indice en la coleccion
-// tipe: i, index, u, unique, t, text, h, hashed
+// tipe: i, index, u, unique, t, text, h, hashed, s, sparse
 // fields: los campos a indexar por defecto el orden es 1
 // fields: el orden decendente se puede colocar con fieldName:-1
 // Forma de uso
