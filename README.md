@@ -1,11 +1,10 @@
-# new
+# new 0.8.1
 
 Este es un punto de partida pa’ arrancar mis proyectos con **Go** y **MongoDB**, usando una estructura **MVC** bien organizada, con **SSR**, todo montado como a mí me gusta: sencillo y sin exceso de dependencias.
 
 La idea es que no me toque arrancar de cero cada vez que vaya a montar un proyecto, sino que ya tenga la base lista pa’ empezar a meterle funcionalidad de una. 🚀
 
-este proyecto nacio por que cuando empece a aprender go no me gustaron los frameworks que habia en el momento.
-Todos inspirados en algo que no me gusta express no es que sean malos solo que tengo gustos exoticos.
+este proyecto nacio por que cuando empece a aprender go, y no me gustaron los frameworks que habia en el momento, todos inspirados en algo que no me gusta "express" no es que sean malos solo que tengo gustos exoticos.
 
 ## 📥 Instalación
 
@@ -58,10 +57,11 @@ Sitio oficial: [https://www.mongodb.com/](https://www.mongodb.com/)
 
 ### ***make*** 
 Es el asistente cli para facilitar el trabajo en el proyecto.
-- Compila el ts, js con y las Quicktemplate.
+- Compila el ts, js con y las Templates.
 - Minifica el css y js en produccion.
 - Crea las templates.
 - Tiene modo desarrollador que compila y reinicia el server al realizar cambios.
+
 
 
 ## 🛠️ Comandos de desarrollo
@@ -144,7 +144,7 @@ bun make mvc mi_entidad
 crea todo
 
 
-Creado con ❤️ por Don Barrigon
+Este proyecto fue creado con ❤️ por Don Barrigon
 Distribuido bajo la [MIT License](./LICENSE).
 
-This project was created using `bun init` in bun v1.2.21. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+This project uses `bun init` in bun v1.2.21. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/vmihailenco/msgpack/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -50,11 +51,11 @@ func (c *Context) GetBody(request any) error {
 	return nil
 }
 
-func (c *Context) Get(param string, defaultValue string) string {
+func (c *Context) Get(param string) string {
 	return c.Request.URL.Query().Get(param)
 }
 
-func (c *Context) Json(status int, data any) {
+func (c *Context) ResponseJson(status int, data any) {
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(status)
 
@@ -65,49 +66,79 @@ func (c *Context) Json(status int, data any) {
 	}
 }
 
-func (c *Context) JsonError(e error) {
+func (c *Context) Response(status int, data any) {
+	c.Writer.Header().Set("Content-Type", "application/msgpack")
+	c.Writer.WriteHeader(status)
+
+	if err := msgpack.NewEncoder(c.Writer).Encode(data); err != nil {
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.Write([]byte(`{"message": "Error", "error": "Could not encode the response"}`))
+	}
+}
+
+func (c *Context) Responsef(status int, data any) {
+	acept := c.Request.Header.Get("accept")
+	if acept == "application/json" {
+		c.ResponseJson(status, data)
+		return
+	}
+	c.Response(status, data)
+}
+
+func (c *Context) ResponseError(e error) {
+
 	var he *err.HttpError
 	if errors.As(e, &he) {
 		he.Message = lang.T(c.Lang(), he.Message, nil)
-		c.Json(he.Status, he)
+		c.Responsef(he.Status, he)
 		return
 	}
 	var ve *err.ValidationError
 	if errors.As(e, &ve) {
 		her := ve.Herror(c.Lang())
-		c.Json(her.Status, her)
+		c.Responsef(her.Status, her)
 		return
 	}
 	her := err.Internal(e)
-	c.Json(her.Status, her)
+	c.Responsef(her.Status, her)
 }
 
-func (c *Context) JsonNotFound() {
-	c.JsonError(err.NotFound(lang.T(c.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": c.Request.Method, "path": c.Request.URL.Path})))
+func (c *Context) ResponseNotFound() {
+	c.ResponseError(err.NotFound(lang.T(c.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": c.Request.Method, "path": c.Request.URL.Path})))
 }
 
-func (c *Context) JsonOk(data any) {
-	c.Json(http.StatusOK, data)
+func (c *Context) ResponseOk(data any) {
+	acept := c.Request.Header.Get("accept")
+	if acept == "application/json" {
+		c.ResponseJson(http.StatusOK, data)
+		return
+	}
+	c.Response(http.StatusOK, data)
 }
 
-func (c *Context) JsonCreated(data any) {
-	c.Json(http.StatusCreated, data)
+func (c *Context) ResponseCreated(data any) {
+	acept := c.Request.Header.Get("accept")
+	if acept == "application/json" {
+		c.ResponseJson(http.StatusCreated, data)
+		return
+	}
+	c.Response(http.StatusCreated, data)
 }
 
-func (c *Context) NoContent() {
+func (c *Context) ResponseNoContent() {
 	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
-func (c *Context) Plain(fileName string, data any, comma ...rune) {
+func (c *Context) ResponseCSV(fileName string, data any, comma ...rune) {
 	val := reflect.ValueOf(data)
 
 	if val.Kind() != reflect.Slice {
-		err := &err.HttpError{
+		e := &err.HttpError{
 			Status:  http.StatusInternalServerError,
 			Message: "Error writing CSV",
 			Err:     "Data is not a slice of structs",
 		}
-		c.JsonError(err)
+		c.ResponseError(e)
 		return
 	}
 
@@ -122,7 +153,7 @@ func (c *Context) Plain(fileName string, data any, comma ...rune) {
 
 	if val.Len() == 0 {
 		err := err.NotFound("No data available")
-		c.JsonError(err)
+		c.ResponseError(err)
 		return
 	}
 

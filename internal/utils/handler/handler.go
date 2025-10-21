@@ -43,7 +43,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				msg = []byte{}
 			}
 			go logs.Critical("Panic: %s", string(msg))
-			c.JsonError(e)
+			c.ResponseError(e)
 			return
 		}
 	}()
@@ -53,7 +53,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctrl(c)
 		return
 	} else {
-		c.JsonNotFound()
+		c.ResponseNotFound()
 		return
 	}
 

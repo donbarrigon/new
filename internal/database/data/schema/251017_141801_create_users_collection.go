@@ -1,4 +1,4 @@
-package migration
+package schema
 
 import (
 	"donbarrigon/new/internal/utils/db"

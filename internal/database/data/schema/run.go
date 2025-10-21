@@ -1,9 +1,9 @@
-package migration
+package schema
 
 import "donbarrigon/new/internal/utils/db"
 
 func Run() []db.Migration {
-	m := []db.Migration{
+	return []db.Migration{
 		CreateUsersCollection{},
 		CreateRolesCollection{},
 		CreatePremissionsCollection{},
@@ -15,5 +15,4 @@ func Run() []db.Migration {
 		CreateStatesCollection{},
 		CreateCitiesCollection{},
 	}
-	return m
 }
