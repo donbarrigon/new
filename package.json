@@ -12,7 +12,7 @@
   "repository": "https://github.com/donbarrigon/new",
   "license": "MIT",
   "description": "hecho con ❤️ por donbarrigon usando go, bun, mongo y quicktemplate",
-  "module": "make.ts",
+  "module": "internal/app/ui/js/main.js",
   "version": "0.8.1",
   "type": "module",
   "private": true,
@@ -26,5 +26,8 @@
   "scripts": {
     "dev": "bun make dev",
     "build": "bun make build"
+  },
+  "dependencies": {
+    "alpinejs": "^3.15.1"
   }
 }

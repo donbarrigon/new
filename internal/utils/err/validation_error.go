@@ -1,25 +1,25 @@
 package err
 
 import (
-	"donbarrigon/new/internal/utils/fm"
 	"donbarrigon/new/internal/utils/lang"
+	"donbarrigon/new/internal/utils/str"
 	"encoding/json"
 )
 
 type ValidationError struct {
 	Messages     map[string][]string
-	Placeholders map[string][]fm.Placeholder
+	Placeholders map[string][]str.Placeholder
 	IsEntity     bool
 }
 
 func NewValidationError() *ValidationError {
 	return &ValidationError{
 		Messages:     map[string][]string{},
-		Placeholders: map[string][]fm.Placeholder{},
+		Placeholders: map[string][]str.Placeholder{},
 	}
 }
 
-func (e *ValidationError) Append(field string, message string, ph fm.Placeholder) {
+func (e *ValidationError) Append(field string, message string, ph str.Placeholder) {
 	ph.Append("field", field)
 	e.Messages[field] = append(e.Messages[field], message)
 	e.Placeholders[field] = append(e.Placeholders[field], ph)
@@ -27,7 +27,7 @@ func (e *ValidationError) Append(field string, message string, ph fm.Placeholder
 
 func (e *ValidationError) AppendM(field string, message string) {
 	e.Messages[field] = append(e.Messages[field], message)
-	e.Placeholders[field] = append(e.Placeholders[field], fm.Placeholder{"field": field})
+	e.Placeholders[field] = append(e.Placeholders[field], str.Placeholder{{Key: "field", Value: field}})
 }
 
 func (e *ValidationError) HasErrors() error {

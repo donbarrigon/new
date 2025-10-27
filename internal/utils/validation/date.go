@@ -1,19 +1,19 @@
-package validate
+package validation
 
 import (
-	"donbarrigon/new/internal/utils/fm"
+	"donbarrigon/new/internal/utils/str"
 	"reflect"
 	"time"
 )
 
 // Before valida que la fecha sea anterior a la fecha especificada
-func Before(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Before(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Parámetro de fecha requerido", fm.Placeholder{}, true
+		return "Parámetro de fecha requerido", str.Placeholder{}, true
 	}
 
 	beforeStr := params[0]
-	ph := fm.Placeholder{"date": beforeStr}
+	ph := str.Placeholder{{Key: "date", Value: beforeStr}}
 
 	if value.Type() != reflect.TypeOf(time.Time{}) {
 		return "El campo :field debe ser de tipo fecha", ph, true
@@ -36,13 +36,13 @@ func Before(value reflect.Value, params ...string) (string, fm.Placeholder, bool
 }
 
 // After valida que la fecha sea posterior a la fecha especificada
-func After(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func After(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Parámetro de fecha requerido", fm.Placeholder{}, true
+		return "Parámetro de fecha requerido", str.Placeholder{}, true
 	}
 
 	afterStr := params[0]
-	ph := fm.Placeholder{"date": afterStr}
+	ph := str.Placeholder{{Key: "date", Value: afterStr}}
 
 	if value.Type() != reflect.TypeOf(time.Time{}) {
 		return "El campo :field debe ser de tipo fecha", ph, true
@@ -65,8 +65,8 @@ func After(value reflect.Value, params ...string) (string, fm.Placeholder, bool)
 }
 
 // BeforeNow valida que la fecha sea anterior a la fecha actual
-func BeforeNow(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
-	ph := fm.Placeholder{"date": "ahora"}
+func BeforeNow(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
+	ph := str.Placeholder{{Key: "date", Value: "ahora"}}
 
 	if value.Type() != reflect.TypeOf(time.Time{}) {
 		return "El campo :field debe ser de tipo fecha", ph, true
@@ -83,8 +83,8 @@ func BeforeNow(value reflect.Value, params ...string) (string, fm.Placeholder, b
 }
 
 // AfterNow valida que la fecha sea posterior a la fecha actual
-func AfterNow(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
-	ph := fm.Placeholder{"date": "ahora"}
+func AfterNow(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
+	ph := str.Placeholder{{Key: "date", Value: "ahora"}}
 
 	if value.Type() != reflect.TypeOf(time.Time{}) {
 		return "El campo :field debe ser de tipo fecha", ph, true

@@ -1,14 +1,14 @@
-package validate
+package validation
 
 import (
 	"donbarrigon/new/internal/utils/err"
-	"donbarrigon/new/internal/utils/fm"
 	"donbarrigon/new/internal/utils/handler"
+	"donbarrigon/new/internal/utils/str"
 	"reflect"
 	"strings"
 )
 
-type ValidationFunc func(value reflect.Value, params ...string) (string, fm.Placeholder, bool)
+type ValidationFunc func(value reflect.Value, params ...string) (string, str.Placeholder, bool)
 
 type Rules map[string]map[string][]string
 

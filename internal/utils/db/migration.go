@@ -3,8 +3,8 @@ package db
 import (
 	"context"
 	"donbarrigon/new/internal/utils/err"
-	"donbarrigon/new/internal/utils/fm"
 	"donbarrigon/new/internal/utils/logs"
+	"donbarrigon/new/internal/utils/str"
 	"strconv"
 	"strings"
 
@@ -177,14 +177,15 @@ func (c *CollectionBuilder) indexHashed(field string) {
 func (c *CollectionBuilder) CreateIndex(model mongo.IndexModel, opts ...options.Lister[options.CreateIndexesOptions]) {
 	name, e := DB.Collection(c.Name).Indexes().CreateOne(context.TODO(), model, opts...)
 	if e != nil {
-		logs.Error("Error al crear el indice :collection :error", fm.Placeholder{
-			"collection": c.Name,
-			"error":      e.Error(),
+		logs.Error("Error al crear el indice :collection :error", str.Placeholder{
+			{Key: "collection", Value: c.Name},
+			{Key: "error", Value: e.Error()},
 		})
+		panic(e.Error())
 	}
-	logs.Info("Indice creado :collection :name", fm.Placeholder{
-		"collection": c.Name,
-		"name":       name,
+	logs.Info("Indice creado :collection :name", str.Placeholder{
+		{Key: "collection", Value: c.Name},
+		{Key: "name", Value: name},
 	})
 }
 
@@ -192,16 +193,16 @@ func (c *CollectionBuilder) DropIndex(indexName string) {
 
 	e := DB.Collection(c.Name).Indexes().DropOne(context.TODO(), indexName)
 	if e != nil {
-		logs.Error("Error al eliminar el indice :collection :name :error ", fm.Placeholder{
-			"collection": c.Name,
-			"name":       indexName,
-			"error":      e.Error(),
+		logs.Error("Error al eliminar el indice :collection :name :error ", str.Placeholder{
+			{Key: "collection", Value: c.Name},
+			{Key: "name", Value: indexName},
+			{Key: "error", Value: e.Error()},
 		})
 		panic(e.Error())
 	}
-	logs.Info("Indice eliminado :collection :name", fm.Placeholder{
-		"collection": c.Name,
-		"name":       indexName,
+	logs.Info("Indice eliminado :collection :name", str.Placeholder{
+		{Key: "collection", Value: c.Name},
+		{Key: "name", Value: indexName},
 	})
 }
 
@@ -209,14 +210,14 @@ func (c *CollectionBuilder) DropAllIndexes() {
 
 	e := DB.Collection(c.Name).Indexes().DropAll(context.TODO())
 	if e != nil {
-		logs.Error("Error al eliminar todos los indices :collection :error ", fm.Placeholder{
-			"collection": c.Name,
-			"error":      e.Error(),
+		logs.Error("Error al eliminar todos los indices :collection :error ", str.Placeholder{
+			{Key: "collection", Value: c.Name},
+			{Key: "error", Value: e.Error()},
 		})
 		panic(e.Error())
 	}
-	logs.Info("Todos los indices fueron eliminados :collection", fm.Placeholder{
-		"collection": c.Name,
+	logs.Info("Todos los indices fueron eliminados :collection", str.Placeholder{
+		{Key: "collection", Value: c.Name},
 	})
 }
 
@@ -224,13 +225,13 @@ func DropCollection(collection string) {
 
 	e := DB.Collection(collection).Drop(context.TODO())
 	if e != nil {
-		logs.Error("Failed to drop collection :collection :error ", fm.Placeholder{
-			"collection": collection,
-			"error":      e.Error(),
+		logs.Error("Failed to drop collection :collection :error ", str.Placeholder{
+			{Key: "collection", Value: collection},
+			{Key: "error", Value: e.Error()},
 		})
 		panic(e.Error())
 	}
-	logs.Info("Dropped collection :collection", fm.Placeholder{
-		"collection": collection,
+	logs.Info("Dropped collection :collection", str.Placeholder{
+		{Key: "collection", Value: collection},
 	})
 }

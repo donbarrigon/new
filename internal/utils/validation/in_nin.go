@@ -1,19 +1,19 @@
-package validate
+package validation
 
 import (
-	"donbarrigon/new/internal/utils/fm"
+	"donbarrigon/new/internal/utils/str"
 	"fmt"
 	"reflect"
 	"strconv"
 )
 
 // In valida que el valor esté presente en la lista de valores permitidos
-func In(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func In(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Se requiere al menos un valor permitido", fm.Placeholder{}, true
+		return "Se requiere al menos un valor permitido", str.Placeholder{}, true
 	}
 
-	ph := fm.Placeholder{"values": fmt.Sprintf("%v", params)}
+	ph := str.Placeholder{{Key: "values", Value: fmt.Sprintf("%v", params)}}
 
 	switch value.Kind() {
 	case reflect.String:
@@ -123,12 +123,12 @@ func In(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
 }
 
 // Nin valida que el valor NO esté presente en la lista de valores prohibidos
-func Nin(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Nin(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Se requiere al menos un valor prohibido", fm.Placeholder{}, true
+		return "Se requiere al menos un valor prohibido", str.Placeholder{}, true
 	}
 
-	ph := fm.Placeholder{"values": fmt.Sprintf("%v", params)}
+	ph := str.Placeholder{{Key: "values", Value: fmt.Sprintf("%v", params)}}
 
 	switch value.Kind() {
 	case reflect.String:

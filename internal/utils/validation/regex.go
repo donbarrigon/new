@@ -1,7 +1,7 @@
-package validate
+package validation
 
 import (
-	"donbarrigon/new/internal/utils/fm"
+	"donbarrigon/new/internal/utils/str"
 	"reflect"
 	"regexp"
 )
@@ -47,19 +47,19 @@ var RegexMap = map[string]string{
 var regexCache = map[string]*regexp.Regexp{}
 
 // Regex valida que el valor coincida con la expresión regular especificada
-func Regex(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Regex(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Se requiere un patrón de expresión regular", fm.Placeholder{}, true
+		return "Se requiere un patrón de expresión regular", str.Placeholder{}, true
 	}
 
 	// Solo validamos strings
 	if value.Kind() != reflect.String {
-		return "El campo :field debe ser de tipo string para validación regex", fm.Placeholder{}, true
+		return "El campo :field debe ser de tipo string para validación regex", str.Placeholder{}, true
 	}
 
 	valueStr := value.String()
 	regexPattern := params[0]
-	ph := fm.Placeholder{"regex": params[0]}
+	ph := str.Placeholder{{Key: "regex", Value: regexPattern}}
 
 	// Buscar en el mapa de regex predefinidas
 	compiledRegex := regexCache[regexPattern]

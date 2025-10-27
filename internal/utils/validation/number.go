@@ -1,7 +1,7 @@
-package validate
+package validation
 
 import (
-	"donbarrigon/new/internal/utils/fm"
+	"donbarrigon/new/internal/utils/str"
 	"reflect"
 	"strconv"
 	"time"
@@ -11,13 +11,13 @@ import (
 // type fm.Placeholder map[string]string
 
 // Min valida que el valor sea mayor o igual al mínimo especificado
-func Min(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Min(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Parámetro mínimo requerido", fm.Placeholder{}, true
+		return "Parámetro mínimo requerido", str.Placeholder{}, true
 	}
 
 	minStr := params[0]
-	ph := fm.Placeholder{"min": minStr}
+	ph := str.Placeholder{{Key: "min", Value: minStr}}
 
 	switch value.Kind() {
 	case reflect.String:
@@ -88,13 +88,13 @@ func Min(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
 }
 
 // Max valida que el valor sea menor o igual al máximo especificado
-func Max(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Max(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 1 {
-		return "Parámetro máximo requerido", fm.Placeholder{}, true
+		return "Parámetro máximo requerido", str.Placeholder{}, true
 	}
 
 	maxStr := params[0]
-	ph := fm.Placeholder{"max": maxStr}
+	ph := str.Placeholder{{Key: "max", Value: maxStr}}
 
 	switch value.Kind() {
 	case reflect.String:
@@ -165,14 +165,14 @@ func Max(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
 }
 
 // Between valida que el valor esté dentro del rango especificado
-func Between(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Between(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 2 {
-		return "Se requieren parámetros mínimo y máximo", fm.Placeholder{}, true
+		return "Se requieren parámetros mínimo y máximo", str.Placeholder{}, true
 	}
 
 	minStr := params[0]
 	maxStr := params[1]
-	ph := fm.Placeholder{"min": minStr, "max": maxStr}
+	ph := str.Placeholder{{Key: "min", Value: minStr}, {Key: "max", Value: maxStr}}
 
 	switch value.Kind() {
 	case reflect.String:

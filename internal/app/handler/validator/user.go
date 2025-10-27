@@ -3,6 +3,7 @@ package validator
 import (
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/handler"
+	"donbarrigon/new/internal/utils/validation"
 	validate "donbarrigon/new/internal/utils/validation"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -62,5 +63,11 @@ func (u *UserStore) PrepareForValidation(c *handler.Context) *err.ValidationErro
 	if u.Password != u.PasswordConfirmation {
 		e.AppendM("password", "Las contraseñas no coinciden")
 	}
-	return nil
+	return e
+}
+
+func NewUserStrore(c *handler.Context) (*UserStore, error) {
+	v := &UserStore{}
+	e := validation.Body(c, v)
+	return v, e
 }

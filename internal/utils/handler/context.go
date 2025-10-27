@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"donbarrigon/new/internal/utils/auth"
 	"donbarrigon/new/internal/utils/err"
-	"donbarrigon/new/internal/utils/fm"
 	"donbarrigon/new/internal/utils/lang"
+	"donbarrigon/new/internal/utils/str"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -104,7 +104,10 @@ func (c *Context) ResponseError(e error) {
 }
 
 func (c *Context) ResponseNotFound() {
-	c.ResponseError(err.NotFound(lang.T(c.Lang(), "The resource [:method :path] does not exist", fm.Placeholder{"method": c.Request.Method, "path": c.Request.URL.Path})))
+	c.ResponseError(err.NotFound(lang.T(c.Lang(), "El recurso [:method :path] No existe", str.Placeholder{
+		{Key: "method", Value: c.Request.Method},
+		{Key: "path", Value: c.Request.URL.Path},
+	})))
 }
 
 func (c *Context) ResponseOk(data any) {

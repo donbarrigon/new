@@ -27,7 +27,7 @@ func (t *Trash) CollectionName() string { return "trash" }
 func (t *Trash) GetID() bson.ObjectID   { return t.ID }
 func (t *Trash) SetID(id bson.ObjectID) { t.ID = id }
 
-func MoveToTrash(userID bson.ObjectID, m db.Model) error {
+func MoveToTrash(userID bson.ObjectID, m db.OdmModel) error {
 	trash := &Trash{
 		UserID:       userID,
 		Collection:   m.CollectionName(),
@@ -70,7 +70,7 @@ func (h *History) BeforeUpdate() error {
 	return err.New(err.INTERNAL, "Estan intentando modificar el historial", errors.New("Estan intentando modificar el historial"))
 }
 
-func HistoryRecord(userID bson.ObjectID, m db.Model, action string) error {
+func NewHistory(userID bson.ObjectID, m db.OdmModel, action string) error {
 	history := &History{
 		UserID:     userID,
 		Collection: m.CollectionName(),

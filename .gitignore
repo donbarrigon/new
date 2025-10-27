@@ -11,6 +11,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Environment files
+.env*
+!.env.example
+!.env.template
+
+# Environment backups
+*.env.backup
+*.env.old
+*.env.bak
+
 # Runtime data
 pids
 *.pid

@@ -1,7 +1,6 @@
 package logs
 
 import (
-	"donbarrigon/new/internal/utils/fm"
 	"encoding/csv"
 	"encoding/json"
 	"encoding/xml"
@@ -409,8 +408,7 @@ func (l *Logger) outputNDJSON() string {
 		escapedDump := strings.ReplaceAll(formatDump(l), `"`, `\"`)
 		escapedDump = strings.ReplaceAll(escapedDump, "\n", " ")
 		escapedDump = strings.ReplaceAll(escapedDump, "\r", " ")
-		ph := fm.Placeholder{"msg": msg, "log": escapedDump}
-		output = ph.Replace(`{"level":"ERROR","message":":msg","log":":log"}`)
+		output = `{"level":"ERROR","message":"` + msg + `","log":"` + escapedDump + `"}`
 
 		Print(msg)
 	} else {

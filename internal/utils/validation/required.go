@@ -1,13 +1,13 @@
-package validate
+package validation
 
 import (
-	"donbarrigon/new/internal/utils/fm"
+	"donbarrigon/new/internal/utils/str"
 	"reflect"
 )
 
 // Required valida que el valor no sea falsy o un valor cero
-func Required(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
-	ph := fm.Placeholder{}
+func Required(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
+	ph := str.Placeholder{}
 
 	if !value.IsValid() {
 		return "El campo :field es requerido", ph, true

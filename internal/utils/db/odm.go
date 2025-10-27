@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type Model interface {
+type OdmModel interface {
 	CollectionName() string
 	GetID() bson.ObjectID
 	SetID(id bson.ObjectID)
@@ -32,10 +32,10 @@ type Model interface {
 	SetDirty(dirty map[string]any)
 }
 
-type Collection []Model
+type Collection []OdmModel
 
 type Odm struct {
-	Model    Model          `bson:"-" json:"-"`
+	Model    OdmModel       `bson:"-" json:"-"`
 	dirty    map[string]any `bson:"-" json:"-"`
 	original map[string]any `bson:"-" json:"-"`
 }
@@ -172,7 +172,7 @@ func (o *Odm) CreateMany(data any) error {
 	}
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
-		if e := elem.(Model).BeforeCreate(); e != nil {
+		if e := elem.(OdmModel).BeforeCreate(); e != nil {
 			return e
 		}
 	}
@@ -184,8 +184,8 @@ func (o *Odm) CreateMany(data any) error {
 	he := []error{}
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i).Interface()
-		elem.(Model).SetID(result.InsertedIDs[i].(bson.ObjectID))
-		if e := elem.(Model).AfterCreate(); e != nil {
+		elem.(OdmModel).SetID(result.InsertedIDs[i].(bson.ObjectID))
+		if e := elem.(OdmModel).AfterCreate(); e != nil {
 			he = append(he, e)
 		}
 	}

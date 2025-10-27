@@ -1,9 +1,9 @@
-package validate
+package validation
 
 import (
 	"context"
 	"donbarrigon/new/internal/utils/db"
-	"donbarrigon/new/internal/utils/fm"
+	"donbarrigon/new/internal/utils/str"
 	"reflect"
 	"time"
 
@@ -13,9 +13,9 @@ import (
 
 // Unique validates that a value is unique in the specified collection and field
 // Params: [collection, field, excludeId]
-func Unique(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Unique(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 
-	ph := fm.Placeholder{}
+	ph := str.Placeholder{}
 	if len(params) < 3 {
 		return "Parámetro colección, campo, y id son requeridos", ph, true
 	}
@@ -57,15 +57,14 @@ func Unique(value reflect.Value, params ...string) (string, fm.Placeholder, bool
 
 // Exists validates that a value exists in the specified collection and field
 // Params: [collection, field]
-func Exists(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func Exists(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 2 {
-		return "Parámetro colección y campo son requeridos", fm.Placeholder{}, true
+		return "Parámetro colección y campo son requeridos", str.Placeholder{}, true
 	}
 
 	col := params[0]
 	field := params[1]
-	ph := fm.Placeholder{}
-	ph["collection"] = col
+	ph := str.Placeholder{{Key: "collection", Value: col}}
 
 	// Skip validation if value is nil or empty
 	if !value.IsValid() || value.IsZero() {
@@ -117,15 +116,14 @@ func Exists(value reflect.Value, params ...string) (string, fm.Placeholder, bool
 
 // NotExists validates that a value does NOT exist in the specified collection and field
 // Params: [collection, field]
-func NotExists(value reflect.Value, params ...string) (string, fm.Placeholder, bool) {
+func NotExists(value reflect.Value, params ...string) (string, str.Placeholder, bool) {
 	if len(params) < 2 {
-		return "Parámetro colección y campo son requeridos", fm.Placeholder{}, true
+		return "Parámetro colección y campo son requeridos", str.Placeholder{}, true
 	}
 
 	col := params[0]
 	field := params[1]
-	ph := fm.Placeholder{}
-	ph["collection"] = col
+	ph := str.Placeholder{{Key: "collection", Value: col}}
 
 	// Skip validation if value is nil or empty
 	if !value.IsValid() || value.IsZero() {
