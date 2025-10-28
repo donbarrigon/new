@@ -10,6 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+type MongoModel interface {
+	GetID() bson.ObjectID
+	Coll() string
+}
+
 type OdmModel interface {
 	CollectionName() string
 	GetID() bson.ObjectID

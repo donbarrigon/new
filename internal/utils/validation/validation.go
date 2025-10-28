@@ -23,9 +23,10 @@ func Body(c *handler.Context, validator Validator) error {
 	}
 
 	e := validator.PrepareForValidation(c)
-	if e == nil {
-		e = err.NewValidationError()
-	}
+	// if e == nil {
+	// 	e = err.NewValidationError()
+	// }
+
 	rules := validator.Rules()
 	return validate(c, validator, rules, e)
 }

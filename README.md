@@ -1,10 +1,10 @@
 # new 0.8.1
 
-Este es un punto de partida pa’ arrancar mis proyectos con **Go** y **MongoDB**, usando una estructura **MVC** bien organizada, con una ui **SSR** y usando **Alpine.js** para la interactividad, todo montado como a mí me gusta: sencillo y sin exceso de dependencias.
+Este es un punto de partida pa’ arrancar mis proyectos con **Go** y **MongoDB**, usando una estructura **MVC** monolitica con una ui **SSR** o una **API**, todo montado como a mí me gusta: sencillo y sin exceso de dependencias.
 
 La idea es que no me toque arrancar de cero cada vez que vaya a montar un proyecto, sino que ya tenga la base lista pa’ empezar a meterle funcionalidad de una. 🚀
 
-este proyecto nacio por que cuando empece a aprender go, y no me gustaron los frameworks que habia en el momento, todos inspirados en algo que no me gusta "express" no es que sean malos solo que tengo gustos exoticos.
+este proyecto nacio por que cuando empece a aprender go, y no me gustaron los frameworks que habia en el momento, todos inspirados en algo que no me gusta "express" no es que sean malos solo que me gustan los frameworks con structura.
 
 ## 📥 Instalación
 

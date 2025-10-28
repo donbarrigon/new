@@ -1,10 +1,10 @@
 package model
 
 import (
+	"context"
 	"donbarrigon/new/internal/utils/auth"
 	"donbarrigon/new/internal/utils/db"
 	"donbarrigon/new/internal/utils/err"
-	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -14,34 +14,62 @@ import (
 // trash
 // ================================================================
 type Trash struct {
-	ID           bson.ObjectID `bson:"_id"           json:"id"`
-	UserID       bson.ObjectID `bson:"user_id"       json:"userId"`
-	Collection   string        `bson:"collection"    json:"collection"`
-	CollectionID bson.ObjectID `bson:"collection_id" json:"collectionId"`
-	Data         any           `bson:"data"          json:"data"`
-	DeletedAt    time.Time     `bson:"deleted_at"    json:"deletedAt"`
-	db.Odm       `bson:"-" json:"-"`
+	ID         bson.ObjectID `bson:"_id"           json:"id"`
+	UserID     bson.ObjectID `bson:"user_id"       json:"userId"`
+	Collection string        `bson:"collection"    json:"collection"`
+	Data       any           `bson:"data"          json:"data"`
+	DeletedAt  time.Time     `bson:"deleted_at"    json:"deletedAt"`
 }
 
-func (t *Trash) CollectionName() string { return "trash" }
-func (t *Trash) GetID() bson.ObjectID   { return t.ID }
-func (t *Trash) SetID(id bson.ObjectID) { t.ID = id }
+func (t *Trash) GetID() bson.ObjectID { return t.ID }
+func (t *Trash) Coll() string         { return "trash" }
 
-func MoveToTrash(userID bson.ObjectID, m db.OdmModel) error {
+func MoveToTrash(userID bson.ObjectID, m db.MongoModel) error {
 	trash := &Trash{
-		UserID:       userID,
-		Collection:   m.CollectionName(),
-		CollectionID: m.GetID(),
-		Data:         m,
+		UserID:     userID,
+		Collection: m.Coll(),
+		Data:       m,
+		DeletedAt:  time.Now(),
 	}
-	trash.Odm.Model = trash
-	if e := trash.Create(); e != nil {
-		return e
+
+	_, e := db.Mongo.Collection("trash").InsertOne(context.TODO(), trash)
+	if e != nil {
+		return err.Mongo(e)
 	}
-	if e := m.Delete(); e != nil {
-		return e
+
+	filter := bson.D{bson.E{Key: "_id", Value: m.GetID()}}
+
+	result, e := db.Mongo.Collection(m.Coll()).DeleteOne(context.TODO(), filter)
+	if e != nil {
+		return err.Mongo(e)
 	}
-	return nil
+	return err.MongoDeleteResult(result)
+}
+
+func RestoreByID(m db.MongoModel, coll string, oid bson.ObjectID) error {
+	filter := bson.D{{Key: "data._id", Value: oid}, {Key: "collection", Value: coll}}
+	if e := db.Mongo.Collection("trash").FindOne(context.TODO(), filter).Decode(m); e != nil {
+		return err.Mongo(e)
+	}
+
+	if _, e := db.Mongo.Collection(coll).InsertOne(context.TODO(), m); e != nil {
+		return err.Mongo(e)
+	}
+
+	result, e := db.Mongo.Collection("trash").DeleteOne(context.TODO(), filter)
+	if e != nil {
+		return err.Mongo(e)
+	}
+
+	return err.MongoDeleteResult(result)
+}
+
+func RestoreByHexID(m db.MongoModel, coll string, id string) error {
+	oid, e := bson.ObjectIDFromHex(id)
+	if e != nil {
+		return err.HexID(e)
+	}
+	return RestoreByID(m, coll, oid)
 }
 
 // ================================================================
@@ -49,38 +77,29 @@ func MoveToTrash(userID bson.ObjectID, m db.OdmModel) error {
 // ================================================================
 
 type History struct {
-	ID         bson.ObjectID  `bson:"_id"        json:"id"`
-	UserID     bson.ObjectID  `bson:"user_id"    json:"userId"`
-	Collection string         `bson:"collection" json:"collection"`
-	OldData    map[string]any `bson:"old_data"   json:"oldData"`
-	NewData    map[string]any `bson:"new_data"   json:"newData"`
-	Action     string         `bson:"action"     json:"action"`
-	CreatedAt  time.Time      `bson:"created_at" json:"createdAt"`
-	db.Odm     `bson:"-" json:"-"`
+	ID           bson.ObjectID  `bson:"_id"           json:"id"`
+	UserID       bson.ObjectID  `bson:"user_id"       json:"userId"`
+	CollectionID bson.ObjectID  `bson:"collection_id" json:"collectionId"`
+	Collection   string         `bson:"collection"    json:"collection"`
+	OldData      map[string]any `bson:"old_data"      json:"oldData"`
+	Action       string         `bson:"action"        json:"action"`
+	CreatedAt    time.Time      `bson:"created_at"    json:"createdAt"`
 }
 
-func (h *History) CollectionName() string { return "history" }
-func (h *History) GetID() bson.ObjectID   { return h.ID }
-func (h *History) SetID(id bson.ObjectID) { h.ID = id }
-func (h *History) BeforeCreate() error {
-	h.CreatedAt = time.Now()
-	return nil
-}
-func (h *History) BeforeUpdate() error {
-	return err.New(err.INTERNAL, "Estan intentando modificar el historial", errors.New("Estan intentando modificar el historial"))
-}
+func (h *History) GetID() bson.ObjectID { return h.ID }
+func (h *History) Coll() string         { return "history" }
 
-func NewHistory(userID bson.ObjectID, m db.OdmModel, action string) error {
+func CreateHistory(userID bson.ObjectID, m db.MongoModel, oldData map[string]any, action string) error {
 	history := &History{
-		UserID:     userID,
-		Collection: m.CollectionName(),
-		OldData:    m.GetOriginal(),
-		NewData:    m.GetDirty(),
-		Action:     action,
+		UserID:       userID,
+		CollectionID: m.GetID(),
+		Collection:   m.Coll(),
+		OldData:      oldData,
+		Action:       action,
+		CreatedAt:    time.Now(),
 	}
-	history.Odm.Model = history
-	if e := history.Create(); e != nil {
-		return e
+	if _, e := db.Mongo.Collection(history.Coll()).InsertOne(context.TODO(), history); e != nil {
+		return err.Mongo(e)
 	}
 	return nil
 }
@@ -96,11 +115,13 @@ type Token struct {
 	Action    string        `bson:"action"     json:"action"`
 	CreatedAt time.Time     `bson:"created_at" json:"createdAt"`
 	ExpiresAt time.Time     `bson:"expires_at" json:"expiresAt"`
-	db.Odm    `bson:"-" json:"-"`
 }
 
+func (t *Token) GetID() bson.ObjectID { return t.ID }
+func (t *Token) Coll() string         { return "tokens" }
+
 // crea un token nuevo en la bd con un expiresAt de 24 horas
-func NewToken(user_id string, action string) (*Token, error) {
+func TokenCreate(user_id string, action string) (*Token, error) {
 	t, e := auth.GenerateHexToken()
 	if e != nil {
 		return nil, e
@@ -112,13 +133,11 @@ func NewToken(user_id string, action string) (*Token, error) {
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Hour * 24),
 	}
-	tk.Odm.Model = tk
-	if e := tk.Create(); e != nil {
-		return nil, e
+
+	result, e := db.Mongo.Collection(tk.Coll()).InsertOne(context.TODO(), tk)
+	if e != nil {
+		return nil, err.Mongo(e)
 	}
+	tk.ID = result.InsertedID.(bson.ObjectID)
 	return tk, nil
 }
-
-func (t *Token) CollectionName() string { return "tokens" }
-func (t *Token) GetID() bson.ObjectID   { return t.ID }
-func (t *Token) SetID(id bson.ObjectID) { t.ID = id }

@@ -4,10 +4,13 @@ import (
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/handler"
 	"donbarrigon/new/internal/utils/validation"
-	validate "donbarrigon/new/internal/utils/validation"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
+// ================================================================
+//                             STORE
+// ================================================================
 
 type UserStore struct {
 	Email                string        `json:"email"`
@@ -20,8 +23,8 @@ type UserStore struct {
 	CityID               bson.ObjectID `json:"cityId"`
 }
 
-func (u *UserStore) Rules() validate.Rules {
-	return validate.Rules{
+func (u *UserStore) Rules() validation.Rules {
+	return validation.Rules{
 		"email": {
 			"required": {},
 			"regex":    {"email"},
@@ -68,6 +71,172 @@ func (u *UserStore) PrepareForValidation(c *handler.Context) *err.ValidationErro
 
 func NewUserStrore(c *handler.Context) (*UserStore, error) {
 	v := &UserStore{}
+	e := validation.Body(c, v)
+	return v, e
+}
+
+// ================================================================
+//                       UPDATE PROFILE
+// ================================================================
+
+type UserUpdateProfile struct {
+	Nickname string        `json:"nickname"`
+	Name     string        `json:"name"`
+	Phone    string        `json:"phone,omitempty"`
+	Discord  string        `json:"discord,omitempty"`
+	CityID   bson.ObjectID `json:"cityId"`
+}
+
+func (u *UserUpdateProfile) Rules() validation.Rules {
+	return validation.Rules{
+		"nickname": {
+			"between": {"3", "255"},
+		},
+		"name": {
+			"between": {"3", "255"},
+		},
+		"phone": {
+			"regex": {"phone"},
+		},
+		"discord": {
+			"regex":   {"discord"},
+			"between": {"3", "32"},
+		},
+		"cityId": {
+			"required": {},
+			"exists":   {"cities", "_id"},
+		},
+	}
+}
+
+func (u *UserUpdateProfile) PrepareForValidation(c *handler.Context) *err.ValidationError {
+	return err.NewValidationError()
+}
+
+func NewUserUpdateProfile(c *handler.Context) (*UserUpdateProfile, error) {
+	v := &UserUpdateProfile{}
+	e := validation.Body(c, v)
+	return v, e
+}
+
+// ================================================================
+//                       UPDATE EMAIL
+// ================================================================
+
+type UserUpdateEmail struct {
+	Email string `json:"email"`
+}
+
+func (u *UserUpdateEmail) Rules() validation.Rules {
+	return validation.Rules{
+		"email": {
+			"required": {},
+			"regex":    {"email"},
+			"between":  {"3", "254"},
+			"unique":   {"users", "email"},
+		},
+	}
+}
+
+func (u *UserUpdateEmail) PrepareForValidation(c *handler.Context) *err.ValidationError {
+	return err.NewValidationError()
+}
+
+func NewUserUpdateEmail(c *handler.Context) (*UserUpdateEmail, error) {
+	v := &UserUpdateEmail{}
+	e := validation.Body(c, v)
+	return v, e
+}
+
+// ================================================================
+//                       UPDATE PASSWORD
+// ================================================================
+
+type UserUpdatePassword struct {
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"passwordConfirmation"`
+}
+
+func (u *UserUpdatePassword) Rules() validation.Rules {
+	return validation.Rules{
+		"password": {
+			"required": {},
+			"between":  {"8", "32"},
+		},
+		"passwordConfirmation": {
+			"required": {},
+		},
+	}
+}
+
+func (u *UserUpdatePassword) PrepareForValidation(c *handler.Context) *err.ValidationError {
+	e := err.NewValidationError()
+	if u.Password != u.PasswordConfirmation {
+		e.AppendM("password", "Las contraseñas no coinciden")
+	}
+	return e
+}
+
+func NewUserUpdatePassword(c *handler.Context) (*UserUpdatePassword, error) {
+	v := &UserUpdatePassword{}
+	e := validation.Body(c, v)
+	return v, e
+}
+
+// ================================================================
+//                       CREATE ROLES
+// ================================================================
+
+type RoleStore struct {
+	Name string `json:"name"`
+}
+
+func (r *RoleStore) Rules() validation.Rules {
+	return validation.Rules{
+		"name": {
+			"required": {},
+			"between":  {"3", "255"},
+			"regex":    {"kebab-case"},
+			"unique":   {"roles", "name"},
+		},
+	}
+}
+
+func (r *RoleStore) PrepareForValidation(c *handler.Context) *err.ValidationError {
+	return err.NewValidationError()
+}
+
+func NewRoleStore(c *handler.Context) (*RoleStore, error) {
+	v := &RoleStore{}
+	e := validation.Body(c, v)
+	return v, e
+}
+
+// ================================================================
+//                       CREATE PERMISSIONS
+// ================================================================
+
+type PermissionStore struct {
+	Name string `json:"name"`
+}
+
+func (p *PermissionStore) Rules() validation.Rules {
+	return validation.Rules{
+		"name": {
+			"required": {},
+			"between":  {"3", "255"},
+			"regex":    {"^[a-z0-9]+(?:[ -][a-z0-9]+)*$"}, // sin mayúsculas, solo minúsculas, números, guiones y espacios
+			"unique":   {"permissions", "name"},
+		},
+	}
+}
+
+func (p *PermissionStore) PrepareForValidation(c *handler.Context) *err.ValidationError {
+	return err.NewValidationError()
+}
+
+func NewPermissionStore(c *handler.Context) (*PermissionStore, error) {
+	v := &PermissionStore{}
 	e := validation.Body(c, v)
 	return v, e
 }

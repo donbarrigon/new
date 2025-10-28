@@ -1,4 +1,4 @@
-package qb
+package db
 
 import (
 	"donbarrigon/new/internal/utils/handler"

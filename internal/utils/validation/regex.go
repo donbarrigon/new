@@ -7,6 +7,10 @@ import (
 )
 
 var RegexMap = map[string]string{
+	"snake_case":                    "^[a-z][a-z0-9_]*$",
+	"kebab-case":                    "^[a-z][a-z0-9-]*$",
+	"camelCase":                     "^[a-z]+(?:[A-Z][a-z0-9]*)*$",
+	"PascalCase":                    "^[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$",
 	"alpha":                         `^[A-Za-z]+$`,
 	"numeric":                       `^[0-9]+$`,
 	"alpha_dash":                    `^[A-Za-z-_]+$`,
@@ -69,6 +73,7 @@ func Regex(value reflect.Value, params ...string) (string, str.Placeholder, bool
 		if e != nil {
 			return "Patrón de expresión regular inválido [:regex]", ph, true
 		}
+		regexCache[regexPattern] = compiledRegex
 	}
 
 	if !compiledRegex.MatchString(valueStr) {

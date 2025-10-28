@@ -189,3 +189,20 @@ func handleServerError(se mongo.ServerError) *HttpError {
 	// Server errors are typically infrastructure issues
 	return &HttpError{Status: SERVICE_UNAVAILABLE, Message: "Hay un problema con el servidor de la base de datos", Err: errorData(se)}
 }
+
+func MongoUpdateResult(result *mongo.UpdateResult) *HttpError {
+	if result.MatchedCount == 0 {
+		return New(NOT_FOUND, "El documento a modificar no existe", "!result.MatchedCount == 0")
+	}
+	if result.ModifiedCount == 0 {
+		return New(CONFLICT, "No se aplicaron cambios al guardar el documento", "!result.ModifiedCount == 0")
+	}
+	return nil
+}
+
+func MongoDeleteResult(result *mongo.DeleteResult) *HttpError {
+	if result.DeletedCount == 0 {
+		return New(CONFLICT, "No se elimino el documento", "!result.DeletedCount == 0")
+	}
+	return nil
+}

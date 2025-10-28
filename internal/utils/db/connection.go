@@ -12,6 +12,7 @@ import (
 
 var Client *mongo.Client
 var DB *mongo.Database
+var Mongo *mongo.Database
 
 func Col(col string) *mongo.Collection {
 	return DB.Collection(col)
@@ -32,7 +33,8 @@ func InitMongoDB() error {
 		logs.Info("🔴💥 Fail to connect db %s: %s", config.DbName, config.DbConnectionString)
 		return err
 	}
-	DB = Client.Database(config.DbName)
+	Mongo = Client.Database(config.DbName)
+	DB = Mongo
 
 	logs.Info("🍃 Successful connection to %s: %s", config.DbName, config.DbConnectionString)
 	return nil
