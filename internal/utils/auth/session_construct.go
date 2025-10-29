@@ -3,8 +3,8 @@ package auth
 import (
 	"donbarrigon/new/internal/utils/config"
 	"donbarrigon/new/internal/utils/err"
+	"donbarrigon/new/internal/utils/handler"
 	"net"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -19,39 +19,40 @@ type SessionUser interface {
 	HasRole(role string) bool
 }
 
-func SessionStart(w http.ResponseWriter, r *http.Request, user SessionUser) (*Session, error) {
-	host, _, _ := net.SplitHostPort(r.RemoteAddr)
+func SessionStart(c *handler.Context, user SessionUser) error {
+	host, _, _ := net.SplitHostPort(c.Request.RemoteAddr)
 	tk, e := GenerateHexToken()
 	if e != nil {
-		return nil, e
+		return e
 	}
 	s := &Session{
 		//ID:          bson.NewObjectID(),
 		Token:       tk,
 		User:        user,
 		IP:          host,
-		Agent:       r.Header.Get("user-agent"),
-		Lang:        r.Header.Get("accept-language"),
-		Fingerprint: r.Header.Get("x-fingerprint"),
+		Agent:       c.Request.Header.Get("user-agent"),
+		Lang:        c.Request.Header.Get("accept-language"),
+		Fingerprint: c.Request.Header.Get("x-fingerprint"),
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 		ExpiresAt:   expiresAt(),
-		writer:      w,
-		request:     r,
+		writer:      c.Writer,
+		request:     c.Request,
 	}
 	s.SetCookie()
-	return s, s.Save()
+	c.Auth = s
+	return s.Save()
 }
 
 func expiresAt() time.Time {
 	return time.Now().Add(time.Duration(config.SessionLifetime) * time.Minute)
 }
 
-func GetSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
+func GetSession(c *handler.Context) (*Session, error) {
 	var token string
-	cookie, e := r.Cookie("session")
+	cookie, e := c.Request.Cookie("session")
 	if e != nil {
-		authHeader := r.Header.Get("Authorization")
+		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader != "" {
 			token = strings.TrimSpace(strings.TrimPrefix(authHeader, "bearer "))
 		}
@@ -67,8 +68,8 @@ func GetSession(w http.ResponseWriter, r *http.Request) (*Session, error) {
 	if e != nil {
 		return nil, e
 	}
-	s.writer = w
-	s.request = r
+	s.writer = c.Writer
+	s.request = c.Request
 
 	s.SetCookie()
 	if e := s.Refresh(); e != nil {

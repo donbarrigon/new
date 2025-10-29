@@ -184,59 +184,34 @@ func NewUserUpdatePassword(c *handler.Context) (*UserUpdatePassword, error) {
 }
 
 // ================================================================
-//                       CREATE ROLES
+//                              LOGIN
 // ================================================================
 
-type RoleStore struct {
-	Name string `json:"name"`
+type UserLogin struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func (r *RoleStore) Rules() validation.Rules {
+func (u *UserLogin) Rules() validation.Rules {
 	return validation.Rules{
-		"name": {
+		"email": {
 			"required": {},
-			"between":  {"3", "255"},
-			"regex":    {"kebab-case"},
-			"unique":   {"roles", "name"},
+			"regex":    {"email"},
+			"between":  {"3", "254"},
+		},
+		"password": {
+			"required": {},
+			"between":  {"8", "32"},
 		},
 	}
 }
 
-func (r *RoleStore) PrepareForValidation(c *handler.Context) *err.ValidationError {
+func (u *UserLogin) PrepareForValidation(c *handler.Context) *err.ValidationError {
 	return err.NewValidationError()
 }
 
-func NewRoleStore(c *handler.Context) (*RoleStore, error) {
-	v := &RoleStore{}
-	e := validation.Body(c, v)
-	return v, e
-}
-
-// ================================================================
-//                       CREATE PERMISSIONS
-// ================================================================
-
-type PermissionStore struct {
-	Name string `json:"name"`
-}
-
-func (p *PermissionStore) Rules() validation.Rules {
-	return validation.Rules{
-		"name": {
-			"required": {},
-			"between":  {"3", "255"},
-			"regex":    {"^[a-z0-9]+(?:[ -][a-z0-9]+)*$"}, // sin mayúsculas, solo minúsculas, números, guiones y espacios
-			"unique":   {"permissions", "name"},
-		},
-	}
-}
-
-func (p *PermissionStore) PrepareForValidation(c *handler.Context) *err.ValidationError {
-	return err.NewValidationError()
-}
-
-func NewPermissionStore(c *handler.Context) (*PermissionStore, error) {
-	v := &PermissionStore{}
+func NewUserLogin(c *handler.Context) (*UserLogin, error) {
+	v := &UserLogin{}
 	e := validation.Body(c, v)
 	return v, e
 }

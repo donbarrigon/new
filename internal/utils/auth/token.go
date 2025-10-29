@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 )
 
+// genera un token exadecimal de 32 bytes
 func GenerateHexToken() (string, error) {
 	bytes := make([]byte, 32)
 	if _, e := rand.Read(bytes); e != nil {

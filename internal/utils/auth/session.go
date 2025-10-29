@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Session struct {
@@ -27,6 +28,32 @@ type Session struct {
 }
 
 var muSession = sync.Map{}
+
+// ================================================================
+//            FUNCIONES PARA LA INTERFAZ handler.Auth
+// ================================================================
+
+func (s *Session) Can(permission string) error {
+	if s.User.Can(permission) {
+		return nil
+	}
+	return err.Forbidden(nil)
+}
+
+func (s *Session) HasRole(role string) error {
+	if s.User.HasRole(role) {
+		return nil
+	}
+	return err.Forbidden(nil)
+}
+
+func (s *Session) UserID() bson.ObjectID {
+	return s.User.GetID()
+}
+
+// ================================================================
+//                  FUNCIONES AUXILIARES
+// ================================================================
 
 func (s *Session) IsExpired() bool {
 	return time.Now().After(s.ExpiresAt)
@@ -103,14 +130,6 @@ func (s *Session) ClearCookie() {
 		MaxAge:   -1,
 		Expires:  time.Unix(0, 0),
 	})
-}
-
-func (s *Session) Can(permission string) bool {
-	return s.User.Can(permission)
-}
-
-func (s *Session) HasRole(role string) bool {
-	return s.User.HasRole(role)
 }
 
 func (s *Session) saveFileSession() error {

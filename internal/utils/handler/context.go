@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bytes"
-	"donbarrigon/new/internal/utils/auth"
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/lang"
 	"donbarrigon/new/internal/utils/str"
@@ -19,11 +18,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type Auth interface {
+	Can(permission string) error
+	HasRole(role string) error
+	UserID() bson.ObjectID
+}
+
 type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request
 	handler *Handler
-	Auth    *auth.Session
+	Auth    Auth
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request, h *Handler) *Context {
@@ -38,7 +43,8 @@ func (c *Context) Lang() string {
 	return c.Request.Header.Get("Accept-Language")
 }
 
-func (c *Context) GetBody(request any) error {
+func (c *Context) GetBodyJson(request any) error {
+	defer c.Request.Body.Close()
 	decoder := json.NewDecoder(c.Request.Body)
 	if e := decoder.Decode(request); e != nil {
 		return err.New(
@@ -47,8 +53,28 @@ func (c *Context) GetBody(request any) error {
 			e.Error(),
 		)
 	}
-	defer c.Request.Body.Close()
 	return nil
+}
+
+func (c *Context) GetBodyMsgpack(request any) error {
+	defer c.Request.Body.Close()
+	decoder := msgpack.NewDecoder(c.Request.Body)
+	if e := decoder.Decode(request); e != nil {
+		return err.New(
+			http.StatusBadRequest,
+			"El cuerpo de la solicitud no es válido",
+			e.Error(),
+		)
+	}
+	return nil
+}
+
+func (c *Context) GetBody(request any) error {
+	defer c.Request.Body.Close()
+	if c.Request.Header.Get("Content-Type") == "application/json" {
+		return c.GetBodyJson(request)
+	}
+	return c.GetBodyMsgpack(request)
 }
 
 func (c *Context) Get(param string) string {
@@ -66,7 +92,7 @@ func (c *Context) ResponseJson(status int, data any) {
 	}
 }
 
-func (c *Context) Response(status int, data any) {
+func (c *Context) ResponseMsgpack(status int, data any) {
 	c.Writer.Header().Set("Content-Type", "application/msgpack")
 	c.Writer.WriteHeader(status)
 
@@ -76,13 +102,12 @@ func (c *Context) Response(status int, data any) {
 	}
 }
 
-func (c *Context) Responsef(status int, data any) {
-	acept := c.Request.Header.Get("accept")
-	if acept == "application/json" {
+func (c *Context) Response(status int, data any) {
+	if c.Request.Header.Get("accept") == "application/json" {
 		c.ResponseJson(status, data)
 		return
 	}
-	c.Response(status, data)
+	c.ResponseMsgpack(status, data)
 }
 
 func (c *Context) ResponseError(e error) {
@@ -90,17 +115,17 @@ func (c *Context) ResponseError(e error) {
 	var he *err.HttpError
 	if errors.As(e, &he) {
 		he.Message = lang.T(c.Lang(), he.Message, nil)
-		c.Responsef(he.Status, he)
+		c.Response(he.Status, he)
 		return
 	}
 	var ve *err.ValidationError
 	if errors.As(e, &ve) {
 		her := ve.Herror(c.Lang())
-		c.Responsef(her.Status, her)
+		c.Response(her.Status, her)
 		return
 	}
 	her := err.Internal(e)
-	c.Responsef(her.Status, her)
+	c.Response(her.Status, her)
 }
 
 func (c *Context) ResponseNotFound() {
@@ -116,7 +141,7 @@ func (c *Context) ResponseOk(data any) {
 		c.ResponseJson(http.StatusOK, data)
 		return
 	}
-	c.Response(http.StatusOK, data)
+	c.ResponseMsgpack(http.StatusOK, data)
 }
 
 func (c *Context) ResponseCreated(data any) {
@@ -125,7 +150,7 @@ func (c *Context) ResponseCreated(data any) {
 		c.ResponseJson(http.StatusCreated, data)
 		return
 	}
-	c.Response(http.StatusCreated, data)
+	c.ResponseMsgpack(http.StatusCreated, data)
 }
 
 func (c *Context) ResponseNoContent() {

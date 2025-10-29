@@ -42,7 +42,7 @@ func BadRequest(e any) *HttpError {
 func Unauthorized(e any) *HttpError {
 	return &HttpError{
 		Status:  http.StatusUnauthorized,
-		Message: "Necesitas iniciar sesión para continuar",
+		Message: "No tiene autorizacion para hacer esto",
 		Err:     errorData(e),
 	}
 }
