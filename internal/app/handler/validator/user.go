@@ -125,6 +125,7 @@ func NewUserUpdateProfile(c *handler.Context) (*UserUpdateProfile, error) {
 
 type UserUpdateEmail struct {
 	Email string `json:"email"`
+	Code  string `json:"code"`
 }
 
 func (u *UserUpdateEmail) Rules() validation.Rules {
@@ -134,6 +135,9 @@ func (u *UserUpdateEmail) Rules() validation.Rules {
 			"regex":    {"email"},
 			"between":  {"3", "254"},
 			"unique":   {"users", "email"},
+		},
+		"code": {
+			"required": {},
 		},
 	}
 }
@@ -155,6 +159,7 @@ func NewUserUpdateEmail(c *handler.Context) (*UserUpdateEmail, error) {
 type UserUpdatePassword struct {
 	Password             string `json:"password"`
 	PasswordConfirmation string `json:"passwordConfirmation"`
+	Code                 string `json:"code"`
 }
 
 func (u *UserUpdatePassword) Rules() validation.Rules {
@@ -164,6 +169,9 @@ func (u *UserUpdatePassword) Rules() validation.Rules {
 			"between":  {"8", "32"},
 		},
 		"passwordConfirmation": {
+			"required": {},
+		},
+		"code": {
 			"required": {},
 		},
 	}

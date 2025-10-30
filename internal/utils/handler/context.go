@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"donbarrigon/new/internal/utils/auth"
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/lang"
 	"donbarrigon/new/internal/utils/str"
@@ -18,17 +19,17 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type Auth interface {
-	Can(permission string) error
-	HasRole(role string) error
-	UserID() bson.ObjectID
-}
+// type Auth interface {
+// 	Can(permission string) error
+// 	HasRole(role string) error
+// 	UserID() bson.ObjectID
+// }
 
 type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request
 	handler *Handler
-	Auth    Auth
+	Auth    *auth.Session
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request, h *Handler) *Context {

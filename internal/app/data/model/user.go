@@ -2,10 +2,12 @@ package model
 
 import (
 	"context"
+	"crypto/rand"
 	"donbarrigon/new/internal/app/handler/validator"
 	"donbarrigon/new/internal/utils/db"
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/handler"
+	"math/big"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -165,7 +167,10 @@ func (user *User) UpdateProfile(dto *validator.UserUpdateProfile) (*Changes, err
 	if e != nil {
 		return nil, err.Mongo(e)
 	}
-	return changes, err.MongoUpdateResult(result)
+	if e := err.MongoUpdateResult(result); e != nil {
+		return nil, e
+	}
+	return changes, nil
 }
 
 func (user *User) UpdateEmail(dto *validator.UserUpdateEmail) (*Changes, error) {
@@ -184,11 +189,14 @@ func (user *User) UpdateEmail(dto *validator.UserUpdateEmail) (*Changes, error) 
 	if e != nil {
 		return nil, err.Mongo(e)
 	}
-	return changes, err.MongoUpdateResult(result)
+	if e := err.MongoUpdateResult(result); e != nil {
+		return nil, e
+	}
+	return changes, nil
 }
 
-func (user *User) UpdatePassword(dto *validator.UserUpdatePassword) error {
-	bytes, e := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+func (user *User) UpdatePassword(password string) error {
+	bytes, e := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if e != nil {
 		return err.New(err.INTERNAL, "No fue posible encriptar la contraseña", e)
 	}
@@ -202,5 +210,25 @@ func (user *User) UpdatePassword(dto *validator.UserUpdatePassword) error {
 	if e != nil {
 		return err.Mongo(e)
 	}
-	return err.MongoUpdateResult(result)
+	if e := err.MongoUpdateResult(result); e != nil {
+		return e
+	}
+	return nil
+}
+
+func (user *User) ResetPassword() (string, error) {
+	letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+	result := make([]byte, 8)
+	for i := range result {
+		num, _ := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
+		result[i] = letters[num.Int64()]
+	}
+	password := string(result)
+
+	if e := user.UpdatePassword(password); e != nil {
+		return "", e
+	}
+	return password, nil
+
 }

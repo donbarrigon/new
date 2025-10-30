@@ -3,7 +3,7 @@ package model
 import (
 	"context"
 	"donbarrigon/new/internal/utils/db"
-	"donbarrigon/new/internal/utils/err"
+	"donbarrigon/new/internal/utils/logs"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -14,11 +14,11 @@ import (
 // ================================================================
 
 const (
-	CREATE_ACTION       = "create"
-	UPDATE_ACTION       = "update"
-	DELETE_ACTION       = "delete"
-	RESTORE_ACTION      = "restore"
-	FORCE_DELETE_ACTION = "force-delete"
+	CREATE_ACTION       = "Creado"
+	UPDATE_ACTION       = "Actualizado"
+	DELETE_ACTION       = "Eliminado"
+	RESTORE_ACTION      = "Restaurado"
+	FORCE_DELETE_ACTION = "Eliminado permanentemente"
 )
 
 // ================================================================
@@ -46,7 +46,7 @@ func (h *History) Coll() string         { return "history" }
 // 	                 FUNCION AUXILIAR
 // ================================================================
 
-func CreateHistory(action string, userID bson.ObjectID, m db.MongoModel, changes *Changes) error {
+func CreateHistory(action string, userID bson.ObjectID, m db.MongoModel, changes *Changes) {
 	history := &History{
 		UserID:       userID,
 		CollectionID: m.GetID(),
@@ -56,9 +56,8 @@ func CreateHistory(action string, userID bson.ObjectID, m db.MongoModel, changes
 		CreatedAt:    time.Now(),
 	}
 	if _, e := db.Mongo.Collection(history.Coll()).InsertOne(context.TODO(), history); e != nil {
-		return err.Mongo(e)
+		logs.Alert("No se pudo crear el historial: %s", e.Error())
 	}
-	return nil
 }
 
 // ================================================================

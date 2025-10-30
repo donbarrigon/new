@@ -16,13 +16,13 @@ func SendEmailChangeRevert(user *model.User, oldEmail string) {
 
 	switch config.AppLocale {
 	case "es":
-		SendEmailChangeRevertEs(user, oldEmail, url)
+		sendEmailChangeRevertEs(user, oldEmail, url)
 	default:
-		SendEmailChangeRevertEn(user, oldEmail, url)
+		sendEmailChangeRevertEn(user, oldEmail, url)
 	}
 }
 
-func SendEmailChangeRevertEs(user *model.User, oldEmail string, url string) {
+func sendEmailChangeRevertEs(user *model.User, oldEmail string, url string) {
 
 	subject := "Tu correo en " + config.AppName + " ha sido actualizado"
 	body := `
@@ -48,7 +48,7 @@ func SendEmailChangeRevertEs(user *model.User, oldEmail string, url string) {
 	SendMail(subject, body, oldEmail)
 }
 
-func SendEmailChangeRevertEn(user *model.User, oldEmail string, url string) {
+func sendEmailChangeRevertEn(user *model.User, oldEmail string, url string) {
 
 	subject := "Your email address on " + config.AppName + " has been updated"
 
