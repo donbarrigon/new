@@ -2,15 +2,48 @@ package controller
 
 import (
 	"donbarrigon/new/internal/app/data/model"
+	"donbarrigon/new/internal/app/data/validator"
 	"donbarrigon/new/internal/app/handler/policy"
 	"donbarrigon/new/internal/app/handler/service"
-	"donbarrigon/new/internal/app/handler/validator"
 	"donbarrigon/new/internal/utils/auth"
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/handler"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+// get:/api/users
+func UserApiIndex(c *handler.Context) {
+	if e := policy.UserViewAny(c); e != nil {
+		c.ResponseError(e)
+		return
+	}
+
+	users, e := model.UserPaginate(c)
+	if e != nil {
+		c.ResponseError(e)
+		return
+	}
+
+	c.ResponseOk(users)
+}
+
+// get:/api/users/show
+func UserShow(c *handler.Context) {
+
+	user, e := model.UserByHexID(c.Get("id"))
+	if e != nil {
+		c.ResponseError(e)
+		return
+	}
+
+	if e := policy.UserView(c, user); e != nil {
+		c.ResponseError(e)
+		return
+	}
+
+	c.ResponseOk(user)
+}
 
 // post:/api/users
 func UserStore(c *handler.Context) {

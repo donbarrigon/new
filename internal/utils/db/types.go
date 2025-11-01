@@ -6,7 +6,7 @@ type GeoPoint struct {
 	Coordinates []float64 `bson:"coordinates" json:"coordinates"`
 }
 
-func NewGeoPoint(latitude, longitude float64) *GeoPoint {
+func NewGeoPoint(longitude, latitude float64) *GeoPoint {
 	return &GeoPoint{
 		Type:        "Point",
 		Coordinates: []float64{longitude, latitude},

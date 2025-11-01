@@ -3,7 +3,7 @@ package model
 import (
 	"context"
 	"crypto/rand"
-	"donbarrigon/new/internal/app/handler/validator"
+	"donbarrigon/new/internal/app/data/validator"
 	"donbarrigon/new/internal/utils/db"
 	"donbarrigon/new/internal/utils/err"
 	"donbarrigon/new/internal/utils/handler"

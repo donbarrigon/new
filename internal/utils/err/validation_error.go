@@ -37,9 +37,9 @@ func (e *ValidationError) HasErrors() error {
 	return nil
 }
 
-// ================================
+// ================================================================
 // Funciones para la interfaz de Errror
-// ================================
+// ================================================================
 
 func (e *ValidationError) Error() string {
 	b, err := json.Marshal(e.Messages)

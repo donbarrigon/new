@@ -1,7 +1,10 @@
 package model
 
 import (
+	"context"
+	"donbarrigon/new/internal/app/data/validator"
 	"donbarrigon/new/internal/utils/db"
+	"donbarrigon/new/internal/utils/err"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -23,8 +26,8 @@ type Country struct {
 	CurrencySymbol string            `bson:"currency_symbol,omitempty" json:"currencySymbol,omitempty"`
 	TLD            string            `bson:"tld,omitempty"             json:"tld,omitempty"`
 	Native         string            `bson:"native,omitempty"          json:"native,omitempty"`
-	Region         CountryRegion     `bson:"region,omitempty"          json:"region,omitempty"`
-	Subregion      CountrySubRegion  `bson:"subregion,omitempty"       json:"subregion,omitempty"`
+	Region         CountryRegion     `bson:"region"                    json:"region"`
+	Subregion      CountrySubRegion  `bson:"subregion"                 json:"subregion"`
 	Nationality    string            `bson:"nationality,omitempty"     json:"nationality,omitempty"`
 	Timezones      []CountryTimezone `bson:"timezones,omitempty"       json:"timezones,omitempty"`
 	Translations   map[string]string `bson:"translations,omitempty"    json:"translations,omitempty"`
@@ -33,7 +36,6 @@ type Country struct {
 	EmojiU         string            `bson:"emojiU,omitempty"          json:"emojiU,omitempty"`
 	CreatedAt      time.Time         `bson:"created_at"                json:"createdAt"`
 	UpdatedAt      time.Time         `bson:"updated_at"                json:"updatedAt"`
-	db.Odm         `bson:"-" json:"-"`
 }
 
 type CountryTimezone struct {
@@ -53,31 +55,68 @@ type CountryRegion struct {
 
 type CountrySubRegion struct {
 	ID           int               `bson:"id,omitempty"           json:"id,omitempty"`
-	RegionID     int               `bson:"region_id,omitempty"    json:"region_id,omitempty"`
+	RegionID     int               `bson:"region_id,omitempty"    json:"regionId,omitempty"`
 	Name         string            `bson:"name,omitempty"         json:"name,omitempty"`
 	Translations map[string]string `bson:"translations,omitempty" json:"translations,omitempty"`
 	WikiDataId   string            `bson:"wiki_data_id,omitempty" json:"wikiDataId,omitempty"`
 }
 
-func NewCountry() *Country {
-	country := &Country{}
-	country.Odm.Model = country
-	return country
-}
+func (c *Country) Coll() string         { return "countries" }
+func (c *Country) GetID() bson.ObjectID { return c.ID }
 
-func (c *Country) CollectionName() string { return "countries" }
-func (c *Country) GetID() bson.ObjectID   { return c.ID }
-func (c *Country) SetID(id bson.ObjectID) { c.ID = id }
+func CountryCreate(dto *validator.CountryStore) (*Country, error) {
 
-func (c *Country) BeforeCreate() error {
-	c.CreatedAt = time.Now()
-	c.UpdatedAt = time.Now()
-	return nil
-}
-
-func (c *Country) BeforeUpdate() error {
-	c.UpdatedAt = time.Now()
-	return nil
+	region := CountryRegion{
+		ID:           dto.Region.ID,
+		Name:         dto.Region.Name,
+		Translations: dto.Region.Translations,
+		WikiDataId:   dto.Region.WikiDataId,
+	}
+	Subregion := CountrySubRegion{
+		ID:           dto.Subregion.ID,
+		RegionID:     dto.Subregion.RegionID,
+		Name:         dto.Subregion.Name,
+		Translations: dto.Subregion.Translations,
+		WikiDataId:   dto.Subregion.WikiDataId,
+	}
+	timezones := []CountryTimezone{}
+	for _, v := range dto.Timezones {
+		ct := CountryTimezone{
+			ZoneName:      v.ZoneName,
+			GMTOffset:     v.GMTOffset,
+			GMTOffsetName: v.GMTOffsetName,
+			Abbreviation:  v.Abbreviation,
+			TZName:        v.TZName,
+		}
+		timezones = append(timezones, ct)
+	}
+	country := &Country{
+		Name:           dto.Name,
+		Iso3:           dto.Iso3,
+		Iso2:           dto.Iso2,
+		NumericCode:    dto.NumericCode,
+		PhoneCode:      dto.PhoneCode,
+		Capital:        dto.Capital,
+		Currency:       dto.Currency,
+		CurrencyName:   dto.CurrencyName,
+		CurrencySymbol: dto.CurrencySymbol,
+		TLD:            dto.TLD,
+		Native:         dto.Native,
+		Region:         region,
+		Subregion:      Subregion,
+		Nationality:    dto.Nationality,
+		Timezones:      timezones,
+		Translations:   dto.Translations,
+		Location:       dto.Location,
+		Emoji:          dto.Emoji,
+		EmojiU:         dto.EmojiU,
+	}
+	result, e := db.Mongo.Collection(country.Coll()).InsertOne(context.TODO(), country)
+	if e != nil {
+		return nil, err.Mongo(e)
+	}
+	country.ID = result.InsertedID.(bson.ObjectID)
+	return country, nil
 }
 
 // ================================================================

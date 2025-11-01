@@ -47,7 +47,7 @@ func validate(c *handler.Context, validator any, rules Rules, e *err.ValidationE
 	}
 	typ := val.Type()
 	numFields := typ.NumField()
-	for i := 0; i < numFields; i++ {
+	for i := range numFields {
 		field := typ.Field(i)
 		tag := field.Tag.Get("json")
 		tagName := strings.Split(tag, ",")[0]
@@ -57,13 +57,35 @@ func validate(c *handler.Context, validator any, rules Rules, e *err.ValidationE
 		if tagName == "" {
 			tagName = field.Name
 		}
+
+		value := val.Field(i)
+		if value.Kind() == reflect.Pointer {
+			if !value.IsNil() {
+				value = value.Elem()
+			}
+		}
+
+		if value.Kind() == reflect.Struct {
+			r := Rules{}
+			for key, rule := range rules {
+				if k, found := strings.CutPrefix(key, tagName+"."); found {
+					r[k] = rule
+				}
+			}
+			e2 := err.NewValidationError()
+			if validate(c, value.Interface(), r, e2) != nil {
+				for e2k, e2v := range e2.Messages {
+					e.Messages[tagName+"."+e2k] = e2v
+					e.Placeholders[tagName+"."+e2k] = e2.Placeholders[e2k]
+				}
+			}
+			continue
+		}
+
 		validations := rules[tagName]
 		if validations == nil {
 			continue
 		}
-
-		value := val.Field(i)
-
 		for rule, params := range validations {
 			switch rule {
 			case "required":

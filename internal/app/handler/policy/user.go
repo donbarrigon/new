@@ -5,15 +5,15 @@ import (
 	"donbarrigon/new/internal/utils/handler"
 )
 
+func UserViewAny(c *handler.Context) error {
+	return c.Auth.Can("view-any user")
+}
+
 func UserView(c *handler.Context, user *model.User) error {
 	if user.ID == c.Auth.UserID() {
 		return nil
 	}
 	return c.Auth.Can("view user")
-}
-
-func UserViewAny(c *handler.Context) error {
-	return c.Auth.Can("view-any user")
 }
 
 func UserCreate(c *handler.Context) error {

@@ -2,7 +2,7 @@ package model
 
 import (
 	"context"
-	"donbarrigon/new/internal/app/handler/validator"
+	"donbarrigon/new/internal/app/data/validator"
 	"donbarrigon/new/internal/utils/db"
 	"donbarrigon/new/internal/utils/err"
 
