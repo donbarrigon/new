@@ -1,0 +1,11 @@
+[package]
+name = "new"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+askama = "0.15.6"
+# desarrollo local
+forge = { path = "../forge" }
+
+tokio = { version = "1", features = ["full"] }
