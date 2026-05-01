@@ -15,6 +15,7 @@ coverage
 logs
 _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+tmp
 
 # temporary files
 tmp
@@ -26,7 +27,6 @@ tmp
 .env.production.local
 .env.local
 env.json
-env.example.json
 
 # caches
 .eslintcache

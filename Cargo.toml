@@ -9,3 +9,8 @@ askama = "0.15.6"
 forge = { path = "../forge" }
 
 tokio = { version = "1", features = ["full"] }
+
+# ================ tls ================
+# rcgen        = "0.13"
+# rustls = { version = "0.23", features = ["ring"] }
+# tokio-rustls = "0.26"
