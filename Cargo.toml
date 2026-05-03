@@ -1,10 +1,10 @@
 [package]
-name = "create-forge"
+name = "create-ironforge"
 version = "0.1.0"
 edition = "2024"
 description = "A web starter-kit for Rust using the Forge framework"
 license = "Apache-2.0"
-repository = "https://github.com/donbarrigon/create-forge"
+repository = "https://github.com/donbarrigon/create-ironforge"
 
 [dependencies]
 askama = "0.15.6"

@@ -1,5 +1,5 @@
 {
-  "name": "@donbarrigon/create-forge",
+  "name": "create-ironforge",
   "version": "0.1.0",
   "description": "A web starter-kit for Rust using the Forge framework",
   "bin": {
@@ -7,7 +7,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/donbarrigon/create-forge"
+    "url": "https://github.com/donbarrigon/create-ironforge"
   },
   "license": "Apache-2.0",
   "module": "index.ts",
