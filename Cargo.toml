@@ -2,11 +2,14 @@
 name = "new"
 version = "0.1.0"
 edition = "2024"
+description = "A web starter-kit for Rust"
+license = "Apache-2.0"
+repository = "https://github.com/donbarrigon/new"
 
 [dependencies]
 askama = "0.15.6"
 # desarrollo local
-forge = { path = "../forge" }
+forge = { path = "../forge/core" }
 
 tokio = { version = "1", features = ["full"] }
 
