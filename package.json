@@ -1,8 +1,17 @@
 {
-  "name": "new",
+  "name": "create-forge",
+  "version": "0.1.0",
+  "description": "A web starter-kit for Rust using the Forge framework",
+  "bin": {
+    "create-forge": "./index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/donbarrigon/create-forge"
+  },
+  "license": "Apache-2.0",
   "module": "index.ts",
   "type": "module",
-  "private": true,
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
     "@types/bun": "latest"
