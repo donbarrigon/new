@@ -1,5 +1,5 @@
 {
-  "name": "create-forge",
+  "name": "@donbarrigon/create-forge",
   "version": "0.1.0",
   "description": "A web starter-kit for Rust using the Forge framework",
   "bin": {
