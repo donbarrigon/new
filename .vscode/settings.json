@@ -4,5 +4,13 @@
     "source.fixAll.biome": "explicit"
   },
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "biomejs.biome"
+  "editor.defaultFormatter": "biomejs.biome",
+  "material-icon-theme.folders.customClones": [
+    {
+      "name": "custom-macros",
+      "base": "functions",
+      "color": "#FF9800",
+      "folderNames": ["macros"]
+    }
+  ]
 }
